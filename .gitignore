@@ -1,2 +1,10 @@
+# Ignore Scala binaries
 *.class
+target
+
+# Ignore log files
 *.log
+
+# Ignore IntelliJ IDEA metadata files
+.bsp
+.idea
