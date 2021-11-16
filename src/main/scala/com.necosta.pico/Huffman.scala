@@ -13,6 +13,7 @@ object Huffman {
    */
   abstract class Tree
   final case class Fork(left: Tree, right: Tree) extends Tree
+  // ToDo: Check if weight should be constrained to only positive numbers
   final case class Leaf(char: Char, weight: Int) extends Tree
 
   def getWeight(tree: Tree): Int = tree match {
