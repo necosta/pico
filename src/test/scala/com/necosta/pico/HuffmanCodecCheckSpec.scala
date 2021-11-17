@@ -15,12 +15,12 @@ class HuffmanCodecCheckSpec extends Properties("HuffmanCodec") {
       encode(leaf)(text) == List(true, true, true)
   }
 
-  property("encode text given fork node") = forAll(Gen.pick(3, 'a' to 'z')) {
-    chars => {
+  property("encode text given fork node") = forAll(Gen.pick(3, 'a' to 'z')) { chars =>
+    {
       val leaf1 = Leaf(chars.head, 100) // 1
-      val leaf2 = Leaf(chars(1), 10) // 0, 1
-      val leaf3 = Leaf(chars.last, 1) // 0, 0
-      val fork = Fork(leaf1, Fork(leaf2, leaf3))
+      val leaf2 = Leaf(chars(1), 10)    // 0, 1
+      val leaf3 = Leaf(chars.last, 1)   // 0, 0
+      val fork  = Fork(leaf1, Fork(leaf2, leaf3))
       encode(fork)(chars.toList) == List(true, false, true, false, false)
     }
   }
@@ -32,13 +32,13 @@ class HuffmanCodecCheckSpec extends Properties("HuffmanCodec") {
       decode(leaf)(bits) == List.fill(3)(char)
   }
 
-  property("decode bits given fork node") = forAll(Gen.pick(3, 'a' to 'z')) {
-    chars => {
+  property("decode bits given fork node") = forAll(Gen.pick(3, 'a' to 'z')) { chars =>
+    {
       val leaf1 = Leaf(chars.head, 100) // 1
-      val leaf2 = Leaf(chars(1), 10) // 0, 1
-      val leaf3 = Leaf(chars.last, 1) // 0, 0
-      val fork = Fork(leaf1, Fork(leaf2, leaf3))
-      val bits = List(true, false, true, false, false)
+      val leaf2 = Leaf(chars(1), 10)    // 0, 1
+      val leaf3 = Leaf(chars.last, 1)   // 0, 0
+      val fork  = Fork(leaf1, Fork(leaf2, leaf3))
+      val bits  = List(true, false, true, false, false)
       decode(fork)(bits) == chars.toList
     }
   }

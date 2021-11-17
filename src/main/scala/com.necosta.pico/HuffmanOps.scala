@@ -11,8 +11,8 @@ object HuffmanOps {
     @tailrec
     def doCount(in: List[Char], acc: List[(Char, Int)]): List[(Char, Int)] = {
       in match {
-        case h :: _ => doCount(in.filterNot(_ == h), acc :+ (h, in.count(_ == h)))
-        case Nil => acc
+        case h :: _ => doCount(in.filterNot(_ == h), acc :+ Tuple2[Char, Int](h, in.count(_ == h)))
+        case Nil    => acc
       }
     }
     doCount(chars, Nil).reverse

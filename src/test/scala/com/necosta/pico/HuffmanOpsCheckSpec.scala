@@ -8,14 +8,13 @@ class HuffmanOpsCheckSpec extends Properties("HuffmanOps") {
 
   import HuffmanOps._
 
-  property("match string and char list size") = forAll(Gen.asciiStr) {
-    str => string2Chars(str).length == str.length
+  property("match string and char list size") = forAll(Gen.asciiStr) { str =>
+    string2Chars(str).length == str.length
   }
 
-  property("match string and char list first and last char") = forAll(Gen.asciiStr) {
-    str =>
-      val result = string2Chars(str)
-      result.headOption == str.headOption && result.reverse.headOption == str.lastOption
+  property("match string and char list first and last char") = forAll(Gen.asciiStr) { str =>
+    val result = string2Chars(str)
+    result.headOption == str.headOption && result.reverse.headOption == str.lastOption
   }
 
   property("count total chars in string") = forAll(listOfN(100, Arbitrary.arbitrary[Char])) {
@@ -29,7 +28,7 @@ class HuffmanOpsCheckSpec extends Properties("HuffmanOps") {
       val result = getCharsCount(chars)
       result.headOption match {
         case Some(v) => v._2 == chars.count(_ == v._1)
-        case None => 0 == chars.length
+        case None    => 0 == chars.length
       }
   }
 }

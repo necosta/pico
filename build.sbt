@@ -13,5 +13,6 @@ lazy val root = (project in file("."))
     scalaVersion := Scala2,
     libraryDependencies ++= libs ++ testLibs,
     addCompilerPlugin("org.typelevel" %% "kind-projector" % KindProjectorVersion cross CrossVersion.full),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion)
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion),
+    scalafmtOnCompile := true
   )
