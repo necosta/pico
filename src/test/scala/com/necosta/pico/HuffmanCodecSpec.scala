@@ -38,5 +38,26 @@ class HuffmanCodecSpec extends Specification with CatsEffect {
       val sourceText = "abc".toList
       encode(fork)(sourceText) mustEqual List(false, true, true, false, false)
     }
+    "decode bits based on given leaf tree" in {
+      val leaf = Leaf('a', 100) // will be given 1
+      val sourceBits = List.fill(3)(true)
+      decode(leaf)(sourceBits) mustEqual "aaa".toList
+    }
+    "decode bits based on given fork tree" in {
+      val leaf1 = Leaf('a', 100) // will be given 1
+      val leaf2 = Leaf('b', 50) // will be given 0,1
+      val leaf3 = Leaf('c', 10) // will be given 0,0
+      val fork = Fork(leaf1, Fork(leaf2, leaf3)) // Create fork based on sorted weights
+      val sourceBits = List(true, false, true, false, false)
+      decode(fork)(sourceBits) mustEqual "abc".toList
+    }
+    "decode bits with repetitions based on given fork tree" in {
+      val leaf1 = Leaf('a', 100) // will be given 1
+      val leaf2 = Leaf('b', 50) // will be given 0,1
+      val leaf3 = Leaf('c', 10) // will be given 0,0
+      val fork = Fork(leaf1, Fork(leaf2, leaf3))
+      val sourceBits = List(true, false, true, false, false, true, false, true)
+      decode(fork)(sourceBits) mustEqual "abcab".toList
+    }
   }
 }
