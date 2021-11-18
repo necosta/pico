@@ -8,7 +8,8 @@ import java.io.{File, FileInputStream, FileOutputStream, InputStream, OutputStre
 
 object FileOps {
 
-  private val FileExtension = ".pico"
+  private val FileExtension   = ".pico"
+  private val BufferSizeBytes = 8
 
   def read(sourceFile: File): IO[Long] = {
     val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
@@ -28,7 +29,7 @@ object FileOps {
   }
 
   private def transfer(origin: InputStream, destination: OutputStream): IO[Long] = {
-    doTransfer(origin, destination, new Array[Byte](10), 0L)
+    doTransfer(origin, destination, new Array[Byte](BufferSizeBytes), 0L)
   }
 
   private def doTransfer(o: InputStream, d: OutputStream, b: Array[Byte], acc: Long): IO[Long] =
@@ -40,10 +41,12 @@ object FileOps {
           //println(b.mkString("|"))
           //val leaf  = Fork(Leaf('a', 100), Fork(Leaf(0.toChar, 10), Leaf(10.toChar, 1)))
           //val chars = b.map(_.toChar).toList
-          //val bits  = HuffmanCodec.encode(leaf)(chars)
-          //val out   = bits.map(b => if (b) '1'.toByte else '0'.toByte).toArray
-          //return out, not b
-          IO.blocking(d.write(b, 0, amount)) >> doTransfer(o, d, b, acc + amount)
+          //println(chars.mkString("|"))
+          //val bits = HuffmanCodec.encode(leaf)(chars)
+          //println(bits.mkString("|"))
+          //val out = HuffmanOps.boolToBytes.apply(bits).toArray
+          //println(out.mkString("|"))
+          IO.blocking(d.write(b, 0, b.length)) >> doTransfer(o, d, b, acc + amount)
         } else
           IO.pure(acc) // End of read stream reached, nothing to write
     } yield count      // Returns the actual amount of bytes transmitted

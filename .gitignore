@@ -8,3 +8,7 @@ target
 # Ignore IntelliJ IDEA metadata files
 .bsp
 .idea
+
+# Ignore .txt (source) and .pico (target) files
+*.txt
+*.pico

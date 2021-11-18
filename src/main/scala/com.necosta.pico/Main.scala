@@ -9,8 +9,8 @@ object Main extends IOApp {
     for {
       _ <- validateArgs(args)
       sourceFile = new File(args.head)
-      count <- FileOps.read(sourceFile)
-      _     <- IO.println(s"$count bytes copied from ${sourceFile.getPath}")
+      bytesRead <- FileOps.read(sourceFile)
+      _         <- IO.println(s"$bytesRead bytes read from ${sourceFile.getPath}")
     } yield ExitCode.Success
 
   private def validateArgs(args: List[String]): IO[Unit] = {
