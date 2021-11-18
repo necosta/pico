@@ -41,12 +41,11 @@ class HuffmanCheckSpec extends Properties("Huffman") {
   }
 
   property("merge two leaves") = forAll(Gen.alphaChar) { char =>
-    val leaf   = Leaf(char, 1)
-    val result = mergeTrees(leaf, leaf)
-    result.left == leaf && result.right == leaf && getChars(result) == List(
-      char,
-      char
-    ) && getWeight(result) == leaf.weight * 2
+    val leaf          = Leaf(char, 1)
+    val result        = mergeTrees(leaf, leaf)
+    val expectedChars = List(char, char)
+    result.left == leaf && result.right == leaf &&
+    getChars(result) == expectedChars && getWeight(result) == leaf.weight * 2
   }
 
   property("merge two forks") = forAll(
@@ -61,8 +60,7 @@ class HuffmanCheckSpec extends Properties("Huffman") {
     val result      = mergeTrees(fork1, fork2)
     val totalChars  = List(char1, char2, char2, char1)
     val totalWeight = weight1 + (weight2 * 2) + weight3
-    result.left == fork1 && result.right == fork2 && getChars(result) == totalChars && getWeight(
-      result
-    ) == totalWeight
+    result.left == fork1 && result.right == fork2 &&
+    getChars(result) == totalChars && getWeight(result) == totalWeight
   }
 }

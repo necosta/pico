@@ -13,15 +13,12 @@ object FileOps {
 
   def read(sourceFile: File): IO[Long] = {
     val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
-    createInputOutputStreams(sourceFile, targetFile).use { case (in, out) =>
+    createIOStreams(sourceFile, targetFile).use { case (in, out) =>
       transfer(in, out)
     }
   }
 
-  private def createInputOutputStreams(
-      in: File,
-      out: File
-  ): Resource[IO, (InputStream, OutputStream)] = {
+  private def createIOStreams(in: File, out: File): Resource[IO, (InputStream, OutputStream)] = {
     for {
       inStream  <- createInputStream(in)
       outStream <- createOutputStream(out)
