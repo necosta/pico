@@ -20,12 +20,18 @@ object HuffmanOps {
     doCount(chars, Nil).reverse
   }
 
-  // Unfortunately Byte represents a number [-128,127] and we require [0,255]
-  // We are forced to use Short and not Byte
-  def bitToByte: List[Boolean] => Iterator[Short] = {
+  // Byte represents a number [-128,127]
+  // bitToByte provides a number [0,255]
+  // We need to shift this number to fit the Byte range
+  def bitToByte: List[Boolean] => Iterator[Byte] = {
     _.sliding(BitToByteRatio, BitToByteRatio)
       .map(_.foldLeft(0)((i, b) => (i << 1) + (if (b) 1 else 0)))
-      .map(v => v.toShort)
+      .map(v => (v - 128).toByte)
   }
 
+  def byteToBit: List[Byte] => List[Boolean] = { bytes =>
+    bytes.flatMap(byte =>
+      (0 to 7).foldLeft(Vector[Boolean]()) { (bs, bit) => ((((byte + 128) >> bit) & 1) == 1) +: bs }
+    )
+  }
 }

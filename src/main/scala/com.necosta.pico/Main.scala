@@ -10,7 +10,8 @@ object Main extends IOApp {
       _ <- validateArgs(args)
       sourceFile = new File(args.head)
       bytesRead <- FileOps.read(sourceFile)
-      _         <- IO.println(s"$bytesRead bytes read from ${sourceFile.getPath}")
+      // ToDo: Return the number of bytes written
+      _ <- IO.println(s"$bytesRead bytes read from ${sourceFile.getPath}")
     } yield ExitCode.Success
 
   private def validateArgs(args: List[String]): IO[Unit] = {

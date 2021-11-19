@@ -11,10 +11,18 @@ object Huffman {
     * The weight of a `Fork` node is the sum of the weights of these leaves.
     */
   abstract class Tree
-  final case class Fork(left: Tree, right: Tree) extends Tree
+  final case class Fork(left: Tree, right: Tree) extends Tree {
+    override def toString: String = {
+      s"Fork(${left.toString},${right.toString})"
+    }
+  }
 
   // ToDo: Check if weight should be constrained to only positive numbers
-  final case class Leaf(char: Char, weight: Int) extends Tree
+  final case class Leaf(char: Char, weight: Int) extends Tree {
+    override def toString: String = {
+      s"Leaf(${char.toInt},$weight)"
+    }
+  }
 
   def getWeight(tree: Tree): Int = tree match {
     case Fork(l, r) => getWeight(l) + getWeight(r)

@@ -2,14 +2,13 @@ package com.necosta.pico
 
 import cats.effect.IO
 import cats.effect.kernel.Resource
-//import com.necosta.pico.Huffman.{Fork, Leaf}
 
 import java.io.{File, FileInputStream, FileOutputStream, InputStream, OutputStream}
 
 object FileOps {
 
   private val FileExtension   = ".pico"
-  private val BufferSizeBytes = 8
+  private val BufferSizeBytes = 16
 
   def read(sourceFile: File): IO[Long] = {
     val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
@@ -34,16 +33,10 @@ object FileOps {
       amount <- IO.blocking(o.read(b, 0, b.length))
       count <-
         if (amount > -1) {
-          // ToDo: Encoding logic goes here
-          //println(b.mkString("|"))
-          //val leaf  = Fork(Leaf('a', 100), Fork(Leaf(0.toChar, 10), Leaf(10.toChar, 1)))
-          //val chars = b.map(_.toChar).toList
-          //println(chars.mkString("|"))
-          //val bits = HuffmanCodec.encode(leaf)(chars)
-          //println(bits.mkString("|"))
-          //val out = HuffmanOps.boolToBytes.apply(bits).toArray
-          //println(out.mkString("|"))
-          IO.blocking(d.write(b, 0, b.length)) >> doTransfer(o, d, b, acc + amount)
+          val chars    = b.map(_.toChar).toList
+          val tree     = HuffmanTree.createTree(chars)
+          val encBytes = FileCodec.encode(b)(tree)
+          IO.blocking(d.write(encBytes, 0, encBytes.length)) >> doTransfer(o, d, b, acc + amount)
         } else
           IO.pure(acc) // End of read stream reached, nothing to write
     } yield count      // Returns the actual amount of bytes transmitted
