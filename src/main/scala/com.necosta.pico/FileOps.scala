@@ -5,13 +5,17 @@ import cats.effect.kernel.Resource
 
 import java.io.{File, FileInputStream, FileOutputStream, InputStream, OutputStream}
 
-object FileOps {
+class FileOps(sourceFileName: String) {
+
+  case class BytesCount(readCount: Long, writeCount: Long)
 
   private val FileExtension   = ".pico"
   private val BufferSizeBytes = 16
 
-  def read(sourceFile: File): IO[Long] = {
-    val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
+  val sourceFile = new File(sourceFileName)
+  val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
+
+  def compress(sourceFile: File): IO[BytesCount] = {
     createIOStreams(sourceFile, targetFile).use { case (in, out) =>
       transfer(in, out)
     }
@@ -24,22 +28,30 @@ object FileOps {
     } yield (inStream, outStream)
   }
 
-  private def transfer(origin: InputStream, destination: OutputStream): IO[Long] = {
-    doTransfer(origin, destination, new Array[Byte](BufferSizeBytes), 0L)
+  private def transfer(origin: InputStream, destination: OutputStream): IO[BytesCount] = {
+    doTransfer(origin, destination, new Array[Byte](BufferSizeBytes), 0L, 0L)
   }
 
-  private def doTransfer(o: InputStream, d: OutputStream, b: Array[Byte], acc: Long): IO[Long] =
+  private def doTransfer(
+      o: InputStream,
+      d: OutputStream,
+      b: Array[Byte],
+      accRead: Long,
+      accWrite: Long
+  ): IO[BytesCount] =
     for {
-      amount <- IO.blocking(o.read(b, 0, b.length))
-      count <-
-        if (amount > -1) {
-          val chars    = b.map(_.toChar).toList
-          val tree     = HuffmanTree.createTree(chars)
-          val encBytes = FileCodec.encode(b)(tree)
-          IO.blocking(d.write(encBytes, 0, encBytes.length)) >> doTransfer(o, d, b, acc + amount)
+      readCount <- IO.blocking(o.read(b, 0, b.length))
+      bytesCount <-
+        if (readCount > -1) {
+          val chars      = b.map(_.toChar).toList
+          val tree       = HuffmanTree.createTree(chars)
+          val encBytes   = FileCodec.encode(b)(tree)
+          val writeCount = encBytes.length
+          IO.blocking(d.write(encBytes, 0, writeCount)) >>
+            doTransfer(o, d, b, accRead + readCount, accWrite + writeCount)
         } else
-          IO.pure(acc) // End of read stream reached, nothing to write
-    } yield count      // Returns the actual amount of bytes transmitted
+          IO.pure(BytesCount(accRead, accWrite)) // End of read stream reached, nothing to write
+    } yield bytesCount
 
   private def createInputStream(f: File): Resource[IO, FileInputStream] =
     Resource.make {
