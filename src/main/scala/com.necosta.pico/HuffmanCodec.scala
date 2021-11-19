@@ -6,30 +6,30 @@ import scala.annotation.tailrec
 
 object HuffmanCodec {
 
-  type Table = List[(Char, List[Boolean])]
+  type Table = List[(Byte, List[Boolean])]
 
-  def encode(tree: Tree)(chars: List[Char]): List[Boolean] = {
+  def encode(tree: Tree)(bytes: List[Byte]): List[Boolean] = {
     val table = convertTreeToTable(tree, isRoot = true)
     @tailrec
-    def doEncode(in: List[Char], acc: List[Boolean]): List[Boolean] = in match {
+    def doEncode(in: List[Byte], acc: List[Boolean]): List[Boolean] = in match {
       case h :: t => doEncode(t, acc ++ getBits(table)(h))
       case Nil    => acc
     }
-    doEncode(chars, Nil)
+    doEncode(bytes, Nil)
   }
 
-  def decode(tree: Tree)(bits: List[Boolean]): List[Char] = {
+  def decode(tree: Tree)(bits: List[Boolean]): List[Byte] = {
     val table        = convertTreeToTable(tree, isRoot = true)
     val allFalseBits = table.last._2
     @tailrec
-    def doDecode(in: List[Boolean], accChars: List[Char], accBits: List[Boolean]): List[Char] =
+    def doDecode(in: List[Boolean], accBytes: List[Byte], accBits: List[Boolean]): List[Byte] =
       in match {
         case h :: t if accBits == allFalseBits =>
-          doDecode(h :: t, accChars :+ getChar(table)(accBits), List())
-        case h :: t if h             => doDecode(t, accChars :+ getChar(table)(accBits :+ h), List())
-        case h :: t                  => doDecode(t, accChars, accBits :+ h)
-        case Nil if accBits.nonEmpty => accChars :+ getChar(table)(accBits) // Get last char
-        case Nil                     => accChars
+          doDecode(h :: t, accBytes :+ getByte(table)(accBits), List())
+        case h :: t if h             => doDecode(t, accBytes :+ getByte(table)(accBits :+ h), List())
+        case h :: t                  => doDecode(t, accBytes, accBits :+ h)
+        case Nil if accBits.nonEmpty => accBytes :+ getByte(table)(accBits) // Get last byte
+        case Nil                     => accBytes
       }
     doDecode(bits, Nil, Nil)
   }
@@ -42,20 +42,20 @@ object HuffmanCodec {
   }
 
   private def mergeTables(table1: Table, table2: Table): Table = {
-    def step(bit: Boolean, table: (Char, List[Boolean])): (Char, List[Boolean]) = table match {
-      case (char, bits) => (char, bit :: bits)
+    def step(bit: Boolean, table: (Byte, List[Boolean])): (Byte, List[Boolean]) = table match {
+      case (byte, bits) => (byte, bit :: bits)
     }
     table1.map(step(true, _)) ::: table2.map(step(false, _))
   }
 
-  private def getBits(table: Table)(char: Char): List[Boolean] = {
-    table.find(_._1 == char) match {
+  private def getBits(table: Table)(byte: Byte): List[Boolean] = {
+    table.find(_._1 == byte) match {
       case Some(v) => v._2
-      case None    => throw new Exception(s"No map for value: $char")
+      case None    => throw new Exception(s"No map for value: $byte")
     }
   }
 
-  private def getChar(table: Table)(bits: List[Boolean]): Char = {
+  private def getByte(table: Table)(bits: List[Boolean]): Byte = {
     table.find(_._2 == bits) match {
       case Some(v) => v._1
       case None    => throw new Exception(s"No map for value: ${bits.mkString("|")}")

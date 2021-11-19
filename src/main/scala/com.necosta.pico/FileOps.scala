@@ -10,7 +10,7 @@ class FileOps(sourceFileName: String) {
   case class BytesCount(readCount: Long, writeCount: Long)
 
   private val FileExtension   = ".pico"
-  private val BufferSizeBytes = 16
+  private val BufferSizeBytes = 256
 
   val sourceFile = new File(sourceFileName)
   val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
@@ -43,14 +43,13 @@ class FileOps(sourceFileName: String) {
       readCount <- IO.blocking(o.read(b, 0, b.length))
       bytesCount <-
         if (readCount > -1) {
-          val chars      = b.map(_.toChar).toList
-          val tree       = HuffmanTree.createTree(chars)
+          val tree = HuffmanTree.createTree(b.toList)
           val encBytes   = FileCodec.encode(b)(tree)
           val writeCount = encBytes.length
           IO.blocking(d.write(encBytes, 0, writeCount)) >>
             doTransfer(o, d, b, accRead + readCount, accWrite + writeCount)
         } else
-          IO.pure(BytesCount(accRead, accWrite)) // End of read stream reached, nothing to write
+          IO.pure(BytesCount(accRead, accWrite)) // End of read stream reached
     } yield bytesCount
 
   private def createInputStream(f: File): Resource[IO, FileInputStream] =

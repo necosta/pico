@@ -4,10 +4,10 @@ object Huffman {
 
   /** A huffman code is represented by a binary tree.
     *
-    * A `Leaf` node represents one character that the tree can encode.
-    * The weight of a `Leaf` is the frequency of appearance of the character.
+    * A `Leaf` node represents one byte that the tree can encode.
+    * The weight of a `Leaf` is the frequency of appearance of the byte.
     *
-    * A `Fork` node represents a set containing all the characters present in the leaves below it.
+    * A `Fork` node represents a set containing all the bytes present in the leaves below it.
     * The weight of a `Fork` node is the sum of the weights of these leaves.
     */
   abstract class Tree
@@ -18,9 +18,9 @@ object Huffman {
   }
 
   // ToDo: Check if weight should be constrained to only positive numbers
-  final case class Leaf(char: Char, weight: Int) extends Tree {
+  final case class Leaf(byte: Byte, weight: Int) extends Tree {
     override def toString: String = {
-      s"Leaf(${char.toInt},$weight)"
+      s"Leaf($byte,$weight)"
     }
   }
 
@@ -29,8 +29,8 @@ object Huffman {
     case Leaf(_, w) => w
   }
 
-  def getChars(tree: Tree): List[Char] = tree match {
-    case Fork(l, r) => getChars(l) ::: getChars(r)
+  def getBytes(tree: Tree): List[Byte] = tree match {
+    case Fork(l, r) => getBytes(l) ::: getBytes(r)
     case Leaf(c, _) => List(c)
   }
 

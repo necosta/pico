@@ -6,8 +6,8 @@ import scala.annotation.tailrec
 
 object HuffmanTree {
 
-  def createTree(chars: List[Char]): Tree = {
-    until(createBranches)(orderLeaves(countChars(chars)))
+  def createTree(bytes: List[Byte]): Tree = {
+    until(createBranches)(orderLeaves(countBytes(bytes)))
   }
 
   @tailrec
@@ -24,14 +24,14 @@ object HuffmanTree {
       case _           => trees
     }
 
-  private def countChars(chars: List[Char]): List[Leaf] = chars match {
+  private def countBytes(bytes: List[Byte]): List[Leaf] = bytes match {
     case Nil    => Nil
-    case c :: _ => Leaf(c, chars.count(_ == c)) :: countChars(chars.filterNot(c == _))
+    case c :: _ => Leaf(c, bytes.count(_ == c)) :: countBytes(bytes.filterNot(c == _))
   }
 
   private def orderLeaves(leaves: List[Leaf]): List[Leaf] = {
     leaves
       .sortWith((a, b) => a.weight < b.weight)
-      .map(c => Leaf(c.char, c.weight))
+      .map(c => Leaf(c.byte, c.weight))
   }
 }

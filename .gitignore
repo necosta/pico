@@ -9,6 +9,7 @@ target
 .bsp
 .idea
 
-# Ignore .txt (source) and .pico (target) files
+# Ignore source/target files
 *.txt
 *.pico
+*.zip
