@@ -8,7 +8,7 @@ object Main extends IOApp {
     for {
       _ <- validateArgs(args)
       fileOps = new FileOps(args.head)
-      bytesCount <- fileOps.compress(fileOps.sourceFile)
+      bytesCount <- fileOps.compress()
       _          <- IO.println(s"${bytesCount.readCount} bytes read from ${fileOps.sourceFile.getPath}")
       _          <- IO.println(s"${bytesCount.writeCount} bytes wrote into ${fileOps.targetFile.getPath}")
     } yield ExitCode.Success

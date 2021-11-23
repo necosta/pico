@@ -1,18 +1,19 @@
 package com.necosta.pico.huffman
 
+import cats.syntax.validated._
 import com.necosta.pico.huffman.Huffman.{Fork, Leaf}
 import org.scalacheck.Prop.{forAll, propBoolean}
 import org.scalacheck.{Gen, Properties}
 
 class HuffmanCodecCheckSpec extends Properties("HuffmanCodec") {
 
-  import com.necosta.pico.huffman.HuffmanCodec._
+  import HuffmanCodec._
 
   property("encode text given leaf node") = forAll(Gen.alphaChar, Gen.choose(0, 100)) {
     (char, weight) =>
       val leaf = Leaf(char.toByte, weight)
       val text = List.fill(3)(char.toByte)
-      encode(leaf)(text) == List(true, true, true)
+      encode(leaf)(text) == List(true, true, true).valid
   }
 
   property("encode text given fork node") = forAll(Gen.pick(3, 'a' to 'z')) { chars =>
@@ -22,7 +23,7 @@ class HuffmanCodecCheckSpec extends Properties("HuffmanCodec") {
       val leaf2 = Leaf(bytes(1), 10)    // 0, 1
       val leaf3 = Leaf(bytes.last, 1)   // 0, 0
       val fork  = Fork(leaf1, Fork(leaf2, leaf3))
-      encode(fork)(bytes.toList) == List(true, false, true, false, false)
+      encode(fork)(bytes.toList) == List(true, false, true, false, false).valid
     }
   }
 

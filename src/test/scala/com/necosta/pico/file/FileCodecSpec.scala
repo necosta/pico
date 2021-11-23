@@ -6,18 +6,18 @@ import org.specs2.mutable.Specification
 
 class FileCodecSpec extends Specification with CatsEffect {
 
-  import com.necosta.pico.file.FileCodec._
+  import FileCodec._
 
   "FileCodec" should {
     "encode 1 source byte" in {
       val bytes = Array.fill(8)('a').map(_.toByte)
       val tree  = Leaf('a', 8)
-      encode(bytes)(tree) mustEqual Array[Byte](127)
+      encode(bytes)(tree) must beSome(Array[Byte](127))
     }
     "encode 2 source bytes" in {
       val bytes = Array.fill(16)('a').map(_.toByte)
       val tree  = Leaf('a', 16)
-      encode(bytes)(tree) mustEqual Array[Byte](127, 127)
+      encode(bytes)(tree) must beSome(Array[Byte](127, 127))
     }
     "encode 3 source bytes" in {
       val bytesA = Array.fill(8)('a').map(_.toByte)
@@ -28,7 +28,7 @@ class FileCodecSpec extends Specification with CatsEffect {
       // 8 true's -> 255 - 128
       // false,true,false,true,false,true,false,true -> 85 - 128
       // false, false, false, false -> 0 - 128
-      encode(bytesA ++ bytesB ++ bytesC)(tree) mustEqual Array[Byte](127, -43, -128)
+      encode(bytesA ++ bytesB ++ bytesC)(tree) must beSome(Array[Byte](127, -43, -128))
     }
   }
 }

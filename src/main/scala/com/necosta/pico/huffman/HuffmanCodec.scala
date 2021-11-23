@@ -1,23 +1,27 @@
 package com.necosta.pico.huffman
 
+import cats.data._
 import com.necosta.pico.huffman.Huffman.{Fork, Leaf, Tree}
-
+import cats.syntax.validated._
 import scala.annotation.tailrec
 
 object HuffmanCodec {
 
-  type Table = List[(Byte, List[Boolean])]
+  private type Table = List[(Byte, List[Boolean])]
 
-  def encode(tree: Tree)(bytes: List[Byte]): List[Boolean] = {
+  private type BitsV = ValidatedNec[Byte, List[Boolean]]
+
+  //private type ByteV = ValidatedNec[Byte, Byte]
+
+  def encode(tree: Tree)(bytes: List[Byte]): BitsV = {
     val table = convertTreeToTable(tree, isRoot = true)
 
     @tailrec
-    def doEncode(in: List[Byte], acc: List[Boolean]): List[Boolean] = in match {
-      case h :: t => doEncode(t, acc ++ getBits(table)(h))
+    def doEncode(in: List[Byte], acc: BitsV): BitsV = in match {
+      case h :: t => doEncode(t, acc.combine(getBits(table)(h)))
       case Nil    => acc
     }
-
-    doEncode(bytes, Nil)
+    doEncode(bytes, Nil.validNec)
   }
 
   def decode(tree: Tree)(bits: List[Boolean]): List[Byte] = {
@@ -53,10 +57,10 @@ object HuffmanCodec {
     table1.map(step(true, _)) ::: table2.map(step(false, _))
   }
 
-  private def getBits(table: Table)(byte: Byte): List[Boolean] = {
+  private def getBits(table: Table)(byte: Byte): BitsV = {
     table.find(_._1 == byte) match {
-      case Some(v) => v._2
-      case None    => throw new Exception(s"No map for value: $byte")
+      case Some(v) => v._2.validNec
+      case None    => byte.invalidNec
     }
   }
 

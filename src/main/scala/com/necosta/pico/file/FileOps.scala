@@ -16,7 +16,7 @@ class FileOps(sourceFileName: String) {
   val sourceFile = new File(sourceFileName)
   val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
 
-  def compress(sourceFile: File): IO[BytesCount] = {
+  def compress(): IO[BytesCount] = {
     createIOStreams(sourceFile, targetFile).use { case (in, out) =>
       transfer(in, out)
     }
@@ -45,7 +45,7 @@ class FileOps(sourceFileName: String) {
       bytesCount <-
         if (readCount > -1) {
           val tree       = HuffmanTree.createTree(b.toList)
-          val encBytes   = FileCodec.encode(b)(tree)
+          val encBytes   = FileCodec.encode(b)(tree).getOrElse(Array())
           val writeCount = encBytes.length
           IO.blocking(d.write(encBytes, 0, writeCount)) >>
             doTransfer(o, d, b, accRead + readCount, accWrite + writeCount)
