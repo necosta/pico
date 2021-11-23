@@ -1,7 +1,7 @@
 package com.necosta.pico.huffman
 
 import cats.data._
-import com.necosta.pico.huffman.Huffman.{Fork, Leaf, Tree}
+import com.necosta.pico.huffman.Huffman._
 import cats.syntax.validated._
 import scala.annotation.tailrec
 
@@ -10,8 +10,7 @@ object HuffmanCodec {
   private type Table = List[(Byte, List[Boolean])]
 
   private type BitsV = ValidatedNec[Byte, List[Boolean]]
-
-  //private type ByteV = ValidatedNec[Byte, Byte]
+  private type ByteV = ValidatedNec[List[Boolean], List[Byte]]
 
   def encode(tree: Tree)(bytes: List[Byte]): BitsV = {
     val table = convertTreeToTable(tree, isRoot = true)
@@ -24,22 +23,22 @@ object HuffmanCodec {
     doEncode(bytes, Nil.validNec)
   }
 
-  def decode(tree: Tree)(bits: List[Boolean]): List[Byte] = {
+  def decode(tree: Tree)(bits: List[Boolean]): ByteV = {
     val table        = convertTreeToTable(tree, isRoot = true)
     val allFalseBits = table.last._2
 
     @tailrec
-    def doDecode(in: List[Boolean], accBytes: List[Byte], accBits: List[Boolean]): List[Byte] =
+    def doDecode(in: List[Boolean], accBytes: ByteV, accBits: List[Boolean]): ByteV =
       in match {
         case h :: t if accBits == allFalseBits =>
-          doDecode(h :: t, accBytes :+ getByte(table)(accBits), List())
-        case h :: t if h             => doDecode(t, accBytes :+ getByte(table)(accBits :+ h), List())
+          doDecode(h :: t, accBytes.combine(getByte(table)(accBits)), List())
+        case h :: t if h             => doDecode(t, accBytes.combine(getByte(table)(accBits :+ h)), List())
         case h :: t                  => doDecode(t, accBytes, accBits :+ h)
-        case Nil if accBits.nonEmpty => accBytes :+ getByte(table)(accBits) // Get last byte
+        case Nil if accBits.nonEmpty => accBytes.combine(getByte(table)(accBits)) // Get last byte
         case Nil                     => accBytes
       }
 
-    doDecode(bits, Nil, Nil)
+    doDecode(bits, Nil.validNec, Nil)
   }
 
   private def convertTreeToTable(tree: Tree, isRoot: Boolean): Table = tree match {
@@ -64,10 +63,10 @@ object HuffmanCodec {
     }
   }
 
-  private def getByte(table: Table)(bits: List[Boolean]): Byte = {
+  private def getByte(table: Table)(bits: List[Boolean]): ByteV = {
     table.find(_._2 == bits) match {
-      case Some(v) => v._1
-      case None    => throw new Exception(s"No map for value: ${bits.mkString("|")}")
+      case Some(v) => List(v._1).validNec
+      case None    => bits.invalidNec
     }
   }
 }

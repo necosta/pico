@@ -8,7 +8,7 @@ class FileCodecSpec extends Specification with CatsEffect {
 
   import FileCodec._
 
-  "FileCodec" should {
+  "FileCodec - Encode" should {
     "encode 1 source byte" in {
       val bytes = Array.fill(8)('a').map(_.toByte)
       val tree  = Leaf('a', 8)
@@ -34,6 +34,23 @@ class FileCodecSpec extends Specification with CatsEffect {
       val bytes = Array.fill(8)('a').map(_.toByte)
       val tree  = Leaf('b', 8)
       encode(bytes)(tree) must beNone
+    }
+  }
+  "FileCodec - Decode" should {
+    "decode 1 source byte" in {
+      val bytes = Array[Byte](127)
+      val tree  = Leaf('a', 8)
+      decode(bytes)(tree) must beSome(Array.fill(8)('a').map(_.toByte))
+    }
+    "decode 2 source bytes" in {
+      val bytes = Array[Byte](127, 127)
+      val tree  = Leaf('a', 16)
+      decode(bytes)(tree) must beSome(Array.fill(16)('a').map(_.toByte))
+    }
+    "fail to decode if tree does not contain values to decode" in {
+      val bytes = Array[Byte](-128)
+      val tree  = Leaf('a', 8) // Expects 127 (8 ´true´ bits)
+      decode(bytes)(tree) must beNone
     }
   }
 }

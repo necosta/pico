@@ -39,7 +39,7 @@ class HuffmanCodecCheckSpec extends Properties("HuffmanCodec") {
     (char, weight) =>
       val leaf = Leaf(char.toByte, weight)
       val bits = List.fill(3)(true)
-      decode(leaf)(bits) == List.fill(3)(char.toByte)
+      decode(leaf)(bits) == List.fill(3)(char.toByte).valid
   }
 
   property("decode bits given fork node") = forAll(Gen.pick(3, 'a' to 'z')) { chars =>
@@ -50,7 +50,7 @@ class HuffmanCodecCheckSpec extends Properties("HuffmanCodec") {
       val leaf3 = Leaf(bytes.last, 1)   // 0, 0
       val fork  = Fork(leaf1, Fork(leaf2, leaf3))
       val bits  = List(true, false, true, false, false)
-      decode(fork)(bits) == bytes.toList
+      decode(fork)(bits) == bytes.toList.valid
     }
   }
 }

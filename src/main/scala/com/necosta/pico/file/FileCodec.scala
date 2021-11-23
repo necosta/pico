@@ -24,8 +24,22 @@ object FileCodec {
     }
   }
 
-  def decode(b: Array[Byte])(tree: Tree): Array[Byte] = {
+  def decode(b: Array[Byte])(tree: Tree): Option[Array[Byte]] = {
     val boolList = HuffmanOps.byteToBit.apply(b.toList)
-    HuffmanCodec.decode(tree)(boolList).toArray
+    val bytes    = HuffmanCodec.decode(tree)(boolList)
+    bytes match {
+      case Invalid(necErrors) =>
+        val necErrorsGrouped = necErrors
+          .map(b => {
+            val bDisplay = b.map(bit => if (bit) '1' else '0').mkString("")
+            s"No decoder for value $bDisplay"
+          })
+          .groupBy(x => x)
+          .map(c => s"(${c.length} times)")
+        // ToDo: Side-effect. Remove/replace with logs
+        println(necErrorsGrouped.show)
+        None
+      case Valid(bytes) => Some(bytes.toArray)
+    }
   }
 }
