@@ -1,6 +1,7 @@
-package com.necosta.pico
+package com.necosta.pico.file
 
-import com.necosta.pico.Huffman.Tree
+import com.necosta.pico.huffman.Huffman.Tree
+import com.necosta.pico.huffman.{HuffmanCodec, HuffmanOps}
 
 object FileCodec {
 

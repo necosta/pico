@@ -1,4 +1,4 @@
-package com.necosta.pico
+package com.necosta.pico.huffman
 
 object Huffman {
 
@@ -11,6 +11,7 @@ object Huffman {
     * The weight of a `Fork` node is the sum of the weights of these leaves.
     */
   abstract class Tree
+
   final case class Fork(left: Tree, right: Tree) extends Tree {
     override def toString: String = {
       s"Fork(${left.toString},${right.toString})"

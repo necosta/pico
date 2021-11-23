@@ -1,12 +1,12 @@
-package com.necosta.pico
+package com.necosta.pico.huffman
 
-import com.necosta.pico.Huffman.{Fork, Leaf}
+import com.necosta.pico.huffman.Huffman.{Fork, Leaf}
 import org.scalacheck.Prop.{forAll, propBoolean}
 import org.scalacheck.{Gen, Properties}
 
 class HuffmanCodecCheckSpec extends Properties("HuffmanCodec") {
 
-  import HuffmanCodec._
+  import com.necosta.pico.huffman.HuffmanCodec._
 
   property("encode text given leaf node") = forAll(Gen.alphaChar, Gen.choose(0, 100)) {
     (char, weight) =>

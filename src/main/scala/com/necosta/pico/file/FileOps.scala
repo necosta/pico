@@ -1,9 +1,10 @@
-package com.necosta.pico
+package com.necosta.pico.file
 
 import cats.effect.IO
 import cats.effect.kernel.Resource
+import com.necosta.pico.huffman.HuffmanTree
 
-import java.io.{File, FileInputStream, FileOutputStream, InputStream, OutputStream}
+import java.io._
 
 class FileOps(sourceFileName: String) {
 
@@ -43,7 +44,7 @@ class FileOps(sourceFileName: String) {
       readCount <- IO.blocking(o.read(b, 0, b.length))
       bytesCount <-
         if (readCount > -1) {
-          val tree = HuffmanTree.createTree(b.toList)
+          val tree       = HuffmanTree.createTree(b.toList)
           val encBytes   = FileCodec.encode(b)(tree)
           val writeCount = encBytes.length
           IO.blocking(d.write(encBytes, 0, writeCount)) >>

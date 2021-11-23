@@ -1,11 +1,11 @@
-package com.necosta.pico
+package com.necosta.pico.huffman
 
 import cats.effect.testing.specs2.CatsEffect
 import org.specs2.mutable.Specification
 
 class HuffmanOpsSpec extends Specification with CatsEffect {
 
-  import HuffmanOps._
+  import com.necosta.pico.huffman.HuffmanOps._
 
   "HuffmanOps" should {
     "convert 8 0's into byte min value" in {

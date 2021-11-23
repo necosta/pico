@@ -1,4 +1,4 @@
-package com.necosta.pico
+package com.necosta.pico.huffman
 
 import org.scalacheck.Gen.listOfN
 import org.scalacheck.Prop.forAll
@@ -6,7 +6,7 @@ import org.scalacheck.{Arbitrary, Gen, Properties}
 
 class HuffmanOpsCheckSpec extends Properties("HuffmanOps") {
 
-  import HuffmanOps._
+  import com.necosta.pico.huffman.HuffmanOps._
 
   property("match string and char list size") = forAll(Gen.asciiStr) { str =>
     string2Chars(str).length == str.length

@@ -1,12 +1,12 @@
-package com.necosta.pico
+package com.necosta.pico.huffman
 
 import cats.effect.testing.specs2.CatsEffect
-import com.necosta.pico.Huffman.{Fork, Leaf}
+import com.necosta.pico.huffman.Huffman.{Fork, Leaf}
 import org.specs2.mutable.Specification
 
 class HuffmanCodecSpec extends Specification with CatsEffect {
 
-  import HuffmanCodec._
+  import com.necosta.pico.huffman.HuffmanCodec._
 
   "HuffmanCodec" should {
     "encode text based on given leaf tree" in {

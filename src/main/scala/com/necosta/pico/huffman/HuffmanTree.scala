@@ -1,6 +1,6 @@
-package com.necosta.pico
+package com.necosta.pico.huffman
 
-import com.necosta.pico.Huffman.{Leaf, Tree, getWeight, mergeTrees}
+import com.necosta.pico.huffman.Huffman.{Leaf, Tree, getWeight, mergeTrees}
 
 import scala.annotation.tailrec
 

@@ -1,6 +1,6 @@
-package com.necosta.pico
+package com.necosta.pico.huffman
 
-import com.necosta.pico.Huffman.{Fork, Leaf, Tree}
+import com.necosta.pico.huffman.Huffman.{Fork, Leaf, Tree}
 
 import scala.annotation.tailrec
 
@@ -10,17 +10,20 @@ object HuffmanCodec {
 
   def encode(tree: Tree)(bytes: List[Byte]): List[Boolean] = {
     val table = convertTreeToTable(tree, isRoot = true)
+
     @tailrec
     def doEncode(in: List[Byte], acc: List[Boolean]): List[Boolean] = in match {
       case h :: t => doEncode(t, acc ++ getBits(table)(h))
       case Nil    => acc
     }
+
     doEncode(bytes, Nil)
   }
 
   def decode(tree: Tree)(bits: List[Boolean]): List[Byte] = {
     val table        = convertTreeToTable(tree, isRoot = true)
     val allFalseBits = table.last._2
+
     @tailrec
     def doDecode(in: List[Boolean], accBytes: List[Byte], accBits: List[Boolean]): List[Byte] =
       in match {
@@ -31,6 +34,7 @@ object HuffmanCodec {
         case Nil if accBits.nonEmpty => accBytes :+ getByte(table)(accBits) // Get last byte
         case Nil                     => accBytes
       }
+
     doDecode(bits, Nil, Nil)
   }
 
@@ -45,6 +49,7 @@ object HuffmanCodec {
     def step(bit: Boolean, table: (Byte, List[Boolean])): (Byte, List[Boolean]) = table match {
       case (byte, bits) => (byte, bit :: bits)
     }
+
     table1.map(step(true, _)) ::: table2.map(step(false, _))
   }
 

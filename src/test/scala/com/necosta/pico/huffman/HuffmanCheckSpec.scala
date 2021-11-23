@@ -1,11 +1,11 @@
-package com.necosta.pico
+package com.necosta.pico.huffman
 
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Gen, Properties}
 
 class HuffmanCheckSpec extends Properties("Huffman") {
 
-  import Huffman._
+  import com.necosta.pico.huffman.Huffman._
 
   private val maxWeight = 100
 

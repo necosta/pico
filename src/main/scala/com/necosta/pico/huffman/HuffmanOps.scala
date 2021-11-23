@@ -1,4 +1,4 @@
-package com.necosta.pico
+package com.necosta.pico.huffman
 
 import scala.annotation.tailrec
 
@@ -17,6 +17,7 @@ object HuffmanOps {
         case Nil    => acc
       }
     }
+
     doCount(chars, Nil).reverse
   }
 

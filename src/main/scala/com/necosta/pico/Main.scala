@@ -1,6 +1,7 @@
 package com.necosta.pico
 
 import cats.effect.{ExitCode, IO, IOApp}
+import com.necosta.pico.file.FileOps
 
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =

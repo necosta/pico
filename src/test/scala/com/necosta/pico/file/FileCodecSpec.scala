@@ -1,12 +1,12 @@
-package com.necosta.pico
+package com.necosta.pico.file
 
 import cats.effect.testing.specs2.CatsEffect
-import com.necosta.pico.Huffman.{Fork, Leaf}
+import com.necosta.pico.huffman.Huffman.{Fork, Leaf}
 import org.specs2.mutable.Specification
 
 class FileCodecSpec extends Specification with CatsEffect {
 
-  import FileCodec._
+  import com.necosta.pico.file.FileCodec._
 
   "FileCodec" should {
     "encode 1 source byte" in {
