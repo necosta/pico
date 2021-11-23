@@ -37,8 +37,8 @@ class FileOps(sourceFileName: String) {
       o: InputStream,
       d: OutputStream,
       b: Array[Byte],
-      accRead: Long,
-      accWrite: Long
+      accR: Long,
+      accW: Long
   ): IO[BytesCount] =
     for {
       readCount <- IO.blocking(o.read(b, 0, b.length))
@@ -50,12 +50,12 @@ class FileOps(sourceFileName: String) {
             case Some(encBytes) =>
               val writeCount = encBytes.length
               IO.blocking(d.write(encBytes, 0, writeCount)) >>
-                doTransfer(o, d, b, accRead + readCount, accWrite + writeCount)
+                doTransfer(o, d, b, accR + readCount, accW + writeCount)
             case None =>
               IO.raiseError(new IllegalStateException(s"Failed to encode file $sourceFileName"))
           }
         } else
-          IO.pure(BytesCount(accRead, accWrite)) // End of read stream reached
+          IO.pure(BytesCount(accR, accW)) // End of read stream reached
     } yield bytesCount
 
   private def createInputStream(f: File): Resource[IO, FileInputStream] =
