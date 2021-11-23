@@ -30,5 +30,10 @@ class FileCodecSpec extends Specification with CatsEffect {
       // false, false, false, false -> 0 - 128
       encode(bytesA ++ bytesB ++ bytesC)(tree) must beSome(Array[Byte](127, -43, -128))
     }
+    "fail to encode if tree does not contain values to encode" in {
+      val bytes = Array.fill(8)('a').map(_.toByte)
+      val tree  = Leaf('b', 8)
+      encode(bytes)(tree) must beNone
+    }
   }
 }

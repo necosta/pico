@@ -15,6 +15,11 @@ class HuffmanCodecSpec extends Specification with CatsEffect {
       val sourceText = "aaa".toList.map(_.toByte)
       encode(leaf)(sourceText) mustEqual List(true, true, true).valid
     }
+    "fail to encode text based on incorrect leaf tree" in {
+      val leaf       = Leaf('b', 100) // will be given 1
+      val sourceText = "aaa".toList.map(_.toByte)
+      encode(leaf)(sourceText).isInvalid mustEqual true
+    }
     "encode text based on given fork tree" in {
       val leaf1      = Leaf('a', 100)                  // will be given 1
       val leaf2      = Leaf('b', 50)                   // will be given 0,1

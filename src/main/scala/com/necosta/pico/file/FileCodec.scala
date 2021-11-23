@@ -9,20 +9,18 @@ object FileCodec {
   def encode(b: Array[Byte])(tree: Tree): Option[Array[Byte]] = {
     val bits = HuffmanCodec.encode(tree)(b.toList)
     bits match {
-      case Invalid(failure) =>
-        val errorsGrouped = failure
-          .map(b =>
-            b.toChar match {
-              case c if c.isLetter => s"No encoder for value $c"
-              case _               => "No encoder for non-printable char"
-            }
-          )
+      case Invalid(necErrors) =>
+        val necErrorsGrouped = necErrors
+          .map(_.toChar match {
+            case c if c.isLetter => s"No encoder for value $c"
+            case _               => "No encoder for non-printable char"
+          })
           .groupBy(x => x)
           .map(v => s"(${v.length} times)")
         // ToDo: Side-effect. Remove/replace with logs
-        println(errorsGrouped.show)
+        println(necErrorsGrouped.show)
         None
-      case Valid(x) => Some(HuffmanOps.bitToByte.apply(x).toArray)
+      case Valid(boolList) => Some(HuffmanOps.bitToByte.apply(boolList).toArray)
     }
   }
 

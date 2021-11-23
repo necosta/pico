@@ -16,6 +16,14 @@ class HuffmanCodecCheckSpec extends Properties("HuffmanCodec") {
       encode(leaf)(text) == List(true, true, true).valid
   }
 
+  property("fail to encode text given incorrect leaf node") =
+    forAll(Gen.pick(2, 'a' to 'z'), Gen.choose(0, 100)) { (chars, weight) =>
+      val bytes = chars.map(_.toByte)
+      val leaf  = Leaf(bytes.head, weight)
+      val text  = List.fill(3)(bytes.last)
+      encode(leaf)(text).isInvalid
+    }
+
   property("encode text given fork node") = forAll(Gen.pick(3, 'a' to 'z')) { chars =>
     {
       val bytes = chars.map(_.toByte)
