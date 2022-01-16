@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  private val CatsVersion = "3.2.9"
+  private val CatsVersion = "3.3.4"
   private val ScalaCheckVersion = "1.15.4"
   private val CatsSpecs2Version = "1.3.0"
 
