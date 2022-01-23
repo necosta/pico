@@ -16,24 +16,23 @@ class FileOps(sourceFileName: String) {
   val sourceFile = new File(sourceFileName)
   val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
 
-  def compress(): IO[BytesCount] = {
+  def compress(): IO[BytesCount] =
     createIOStreams(sourceFile, targetFile).use { case (in, out) =>
-      transfer(in, out)
+      doCompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
     }
-  }
 
-  private def createIOStreams(in: File, out: File): Resource[IO, (InputStream, OutputStream)] = {
+  def decompress(): IO[BytesCount] =
+    createIOStreams(sourceFile, targetFile).use { case (in, out) =>
+      doDecompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
+    }
+
+  private def createIOStreams(in: File, out: File): Resource[IO, (InputStream, OutputStream)] =
     for {
       inStream  <- createInputStream(in)
       outStream <- createOutputStream(out)
     } yield (inStream, outStream)
-  }
 
-  private def transfer(origin: InputStream, destination: OutputStream): IO[BytesCount] = {
-    doTransfer(origin, destination, new Array[Byte](BufferSizeBytes), 0L, 0L)
-  }
-
-  private def doTransfer(
+  private def doCompress(
       o: InputStream,
       d: OutputStream,
       b: Array[Byte],
@@ -49,9 +48,33 @@ class FileOps(sourceFileName: String) {
             case Some(encBytes) =>
               val writeCount = encBytes.length
               IO.blocking(d.write(encBytes, 0, writeCount)) >>
-                doTransfer(o, d, b, accR + readCount, accW + writeCount)
+                doCompress(o, d, b, accR + readCount, accW + writeCount)
             case None =>
               IO.raiseError(new IllegalStateException(s"Failed to encode file $sourceFileName"))
+          }
+        } else
+          IO.pure(BytesCount(accR, accW)) // End of read stream reached
+    } yield bytesCount
+
+  private def doDecompress(
+      o: InputStream,
+      d: OutputStream,
+      b: Array[Byte],
+      accR: Long,
+      accW: Long
+  ): IO[BytesCount] =
+    for {
+      readCount <- IO.blocking(o.read(b, 0, b.length))
+      bytesCount <-
+        if (readCount > -1) {
+          val tree = HuffmanTree.createTree(b.toList)
+          FileCodec.encode(b)(tree) match {
+            case Some(encBytes) =>
+              val writeCount = encBytes.length
+              IO.blocking(d.write(encBytes, 0, writeCount)) >>
+                doDecompress(o, d, b, accR + readCount, accW + writeCount)
+            case None =>
+              IO.raiseError(new IllegalStateException(s"Failed to decode file $sourceFileName"))
           }
         } else
           IO.pure(BytesCount(accR, accW)) // End of read stream reached
