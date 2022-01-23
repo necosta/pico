@@ -44,9 +44,8 @@ class FileOps(sourceFileName: String) {
       readCount <- IO.blocking(o.read(b, 0, b.length))
       bytesCount <-
         if (readCount > -1) {
-          val tree          = HuffmanTree.createTree(b.toList)
-          val maybeEncBytes = FileCodec.encode(b)(tree)
-          maybeEncBytes match {
+          val tree = HuffmanTree.createTree(b.toList)
+          FileCodec.encode(b)(tree) match {
             case Some(encBytes) =>
               val writeCount = encBytes.length
               IO.blocking(d.write(encBytes, 0, writeCount)) >>
