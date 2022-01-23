@@ -5,30 +5,34 @@ import cats.effect.kernel.Resource
 import com.necosta.pico.huffman.HuffmanTree
 
 import java.io._
+import java.nio.charset.StandardCharsets
 
 class FileOps(sourceFileName: String) {
 
   case class BytesCount(readCount: Long, writeCount: Long)
 
   private val FileExtension   = ".pico"
-  private val BufferSizeBytes = 256
+  private val BufferSizeBytes = 16
+  private val SpecialChar     = '|'
 
   val sourceFile = new File(sourceFileName)
   val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
 
   def compress(): IO[BytesCount] =
-    createIOStreams(sourceFile, targetFile).use { case (in, out) =>
-      doCompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
+    createIOStreams(sourceFile, targetFile).use {
+      case (in, out) =>
+        doCompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
     }
 
   def decompress(): IO[BytesCount] =
-    createIOStreams(sourceFile, targetFile).use { case (in, out) =>
-      doDecompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
+    createIOStreams(sourceFile, targetFile).use {
+      case (in, out) =>
+        doDecompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
     }
 
   private def createIOStreams(in: File, out: File): Resource[IO, (InputStream, OutputStream)] =
     for {
-      inStream  <- createInputStream(in)
+      inStream <- createInputStream(in)
       outStream <- createOutputStream(out)
     } yield (inStream, outStream)
 
@@ -46,8 +50,10 @@ class FileOps(sourceFileName: String) {
           val tree = HuffmanTree.createTree(b.toList)
           FileCodec.encode(b)(tree) match {
             case Some(encBytes) =>
-              val writeCount = encBytes.length
-              IO.blocking(d.write(encBytes, 0, writeCount)) >>
+              val treeBytes  = HuffmanTree.serialise(tree).getBytes
+              val allBytes   = treeBytes ++ Array[Byte](SpecialChar.toByte) ++ encBytes
+              val writeCount = allBytes.length
+              IO.blocking(d.write(allBytes, 0, writeCount)) >>
                 doCompress(o, d, b, accR + readCount, accW + writeCount)
             case None =>
               IO.raiseError(new IllegalStateException(s"Failed to encode file $sourceFileName"))
@@ -67,8 +73,12 @@ class FileOps(sourceFileName: String) {
       readCount <- IO.blocking(o.read(b, 0, b.length))
       bytesCount <-
         if (readCount > -1) {
-          val tree = HuffmanTree.createTree(b.toList)
-          FileCodec.encode(b)(tree) match {
+          val inputStr      = new String(b, StandardCharsets.UTF_8)
+          val treeDivider   = inputStr.indexOf(SpecialChar.toString)
+          val treeStr       = inputStr.substring(0, treeDivider)
+          val tree          = HuffmanTree.deserialise(treeStr)
+          val bytesToDecode = b.drop(treeDivider + 1).filter(_ != 0)
+          FileCodec.decode(bytesToDecode)(tree) match {
             case Some(encBytes) =>
               val writeCount = encBytes.length
               IO.blocking(d.write(encBytes, 0, writeCount)) >>

@@ -8,6 +8,14 @@ Example: `sbt run file.txt` shall create a file with name `file.txt.pico` and fi
 
 * [Huffman coding](https://en.wikipedia.org/wiki/Huffman_coding)
 
+## Usage 
+
+#### SBT
+
+* Compress with `sbt "run compress --file test.txt"`
+
+* Decompress with `sbt "run decompress --file test.txt.pico"`
+
 ## Prerequisites
 
 * Install [SBT](https://www.scala-sbt.org/download.html)
