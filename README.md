@@ -1,8 +1,6 @@
-# Pico - Compression
+# Pico - Compression/Decompression app
 
-Lossless data compression library using Cats Effect library.
-
-Example: `sbt run file.txt` shall create a file with name `file.txt.pico` and file size smaller than source file.
+Lossless data compression/decompression app using Cats Effect library.
 
 ## Algorithms supported
 

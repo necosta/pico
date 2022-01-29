@@ -4,10 +4,11 @@ object Huffman {
 
   /** A huffman code is represented by a binary tree.
     *
-    * A `Leaf` node represents one byte that the tree can encode. The weight of a `Leaf` is the frequency of appearance of the byte.
+    * A `Leaf` node represents one byte that the tree can encode. The weight of a `Leaf` is the frequency of appearance
+    * of the byte.
     *
-    * A `Fork` node represents a set containing all the bytes present in the leaves below it. The weight of a `Fork` node is the sum of the weights of these
-    * leaves.
+    * A `Fork` node represents a set containing all the bytes present in the leaves below it. The weight of a `Fork`
+    * node is the sum of the weights of these leaves.
     */
   abstract class Tree {
     def toShortString: String

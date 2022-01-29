@@ -17,18 +17,16 @@ class HuffmanOpsCheckSpec extends Properties("HuffmanOps") {
     result.headOption == str.headOption && result.reverse.headOption == str.lastOption
   }
 
-  property("count total chars in string") = forAll(listOfN(100, Arbitrary.arbitrary[Char])) {
-    chars =>
-      val result = getCharsCount(chars)
-      result.length == chars.distinct.length
+  property("count total chars in string") = forAll(listOfN(100, Arbitrary.arbitrary[Char])) { chars =>
+    val result = getCharsCount(chars)
+    result.length == chars.distinct.length
   }
 
-  property("count specific chars in string") = forAll(listOfN(1000, Arbitrary.arbitrary[Char])) {
-    chars =>
-      val result = getCharsCount(chars)
-      result.headOption match {
-        case Some(v) => v._2 == chars.count(_ == v._1)
-        case None    => 0 == chars.length
-      }
+  property("count specific chars in string") = forAll(listOfN(1000, Arbitrary.arbitrary[Char])) { chars =>
+    val result = getCharsCount(chars)
+    result.headOption match {
+      case Some(v) => v._2 == chars.count(_ == v._1)
+      case None    => 0 == chars.length
+    }
   }
 }

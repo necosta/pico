@@ -19,20 +19,18 @@ class FileOps(sourceFileName: String) {
   val targetFile = new File(s"${sourceFile.getPath}$FileExtension")
 
   def compress(): IO[BytesCount] =
-    createIOStreams(sourceFile, targetFile).use {
-      case (in, out) =>
-        doCompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
+    createIOStreams(sourceFile, targetFile).use { case (in, out) =>
+      doCompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
     }
 
   def decompress(): IO[BytesCount] =
-    createIOStreams(sourceFile, targetFile).use {
-      case (in, out) =>
-        doDecompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
+    createIOStreams(sourceFile, targetFile).use { case (in, out) =>
+      doDecompress(in, out, new Array[Byte](BufferSizeBytes), 0L, 0L)
     }
 
   private def createIOStreams(in: File, out: File): Resource[IO, (InputStream, OutputStream)] =
     for {
-      inStream <- createInputStream(in)
+      inStream  <- createInputStream(in)
       outStream <- createOutputStream(out)
     } yield (inStream, outStream)
 

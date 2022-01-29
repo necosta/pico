@@ -34,8 +34,7 @@ class HuffmanCodecSpec extends Specification with CatsEffect {
       val leaf3      = Leaf('c', 10)  // will be given 0,0
       val fork       = Fork(leaf1, Fork(leaf2, leaf3))
       val sourceText = "abcab".toList.map(_.toByte)
-      encode(fork)(sourceText) mustEqual List(true, false, true, false, false, true, false,
-        true).valid
+      encode(fork)(sourceText) mustEqual List(true, false, true, false, false, true, false, true).valid
     }
     "encode text based on fork tree with different weights" in {
       val leaf1      = Leaf('a', 100) // will be given 0,1

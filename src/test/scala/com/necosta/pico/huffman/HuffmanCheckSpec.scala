@@ -9,25 +9,22 @@ class HuffmanCheckSpec extends Properties("Huffman") {
 
   private val maxWeight = 100
 
-  property("keep weight for leaves") = forAll(Gen.alphaChar, Gen.choose(0, maxWeight)) {
-    (char, weight) =>
-      val leaf = Leaf(char.toByte, weight)
-      getWeight(leaf) == weight
+  property("keep weight for leaves") = forAll(Gen.alphaChar, Gen.choose(0, maxWeight)) { (char, weight) =>
+    val leaf = Leaf(char.toByte, weight)
+    getWeight(leaf) == weight
   }
 
-  property("sum weight for forks") =
-    forAll(Gen.alphaChar, Gen.choose(0, maxWeight), Gen.choose(0, maxWeight)) {
-      (char, weight1, weight2) =>
-        val fork = Fork(Leaf(char.toByte, weight1), Leaf(char.toByte, weight2))
-        getWeight(fork) == weight1 + weight2
-    }
+  property("sum weight for forks") = forAll(Gen.alphaChar, Gen.choose(0, maxWeight), Gen.choose(0, maxWeight)) {
+    (char, weight1, weight2) =>
+      val fork = Fork(Leaf(char.toByte, weight1), Leaf(char.toByte, weight2))
+      getWeight(fork) == weight1 + weight2
+  }
 
   property("sum weight for forks of forks") =
-    forAll(Gen.alphaChar, Gen.choose(0, maxWeight), Gen.choose(0, maxWeight)) {
-      (char, weight1, weight2) =>
-        val childFork  = Fork(Leaf(char.toByte, weight1), Leaf(char.toByte, weight2))
-        val parentFork = Fork(childFork, childFork)
-        getWeight(parentFork) == (weight1 + weight2) * 2
+    forAll(Gen.alphaChar, Gen.choose(0, maxWeight), Gen.choose(0, maxWeight)) { (char, weight1, weight2) =>
+      val childFork  = Fork(Leaf(char.toByte, weight1), Leaf(char.toByte, weight2))
+      val parentFork = Fork(childFork, childFork)
+      getWeight(parentFork) == (weight1 + weight2) * 2
     }
 
   property("keep chars for leaves") = forAll(Gen.alphaChar) { char =>
