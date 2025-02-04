@@ -1,3 +1,5 @@
+import Dependencies.*
+
 val scala3Version = "3.6.3"
 
 lazy val root = project
@@ -6,4 +8,6 @@ lazy val root = project
     name := "pico2",
     organization := "com.necosta",
     scalaVersion := scala3Version,
+    libraryDependencies ++= libs,
+    Compile / run / fork := true,
   )
