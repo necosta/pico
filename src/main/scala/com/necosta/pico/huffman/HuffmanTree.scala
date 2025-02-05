@@ -25,6 +25,6 @@ object HuffmanTree {
 
   private def countBytes(bytes: List[Byte]): List[Leaf] = bytes match {
     case Nil    => Nil
-    case c :: _ => Leaf(c, bytes.count(_ == c)) :: countBytes(bytes.filterNot(c == _))
+    case c :: _ => Leaf(c, Some(bytes.count(_ == c))) :: countBytes(bytes.filterNot(c == _))
   }
 }

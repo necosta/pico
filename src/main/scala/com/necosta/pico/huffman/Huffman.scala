@@ -14,26 +14,29 @@ object Huffman {
 
   sealed trait Tree {
     def print: String
-    def getWeight: Int
+    def getWeight: Option[Int]
     def getBytes: List[Byte]
   }
 
   case object NilTree extends Tree {
-    def print: String        = "N"
-    def getWeight: Int       = 0
-    def getBytes: List[Byte] = List.empty
+    def print: String          = "N"
+    def getWeight: Option[Int] = None
+    def getBytes: List[Byte]   = List.empty
   }
 
   final case class Fork(left: Tree, right: Tree) extends Tree {
-    def print: String        = s"F${left.print},${right.print}"
-    def getWeight: Int       = left.getWeight + right.getWeight
+    def print: String = s"F${left.print},${right.print}"
+    def getWeight: Option[Int] = left.getWeight
+      .flatMap(lw => right.getWeight.map(rw => lw + rw))
+      .orElse(left.getWeight)
+      .orElse(right.getWeight)
     def getBytes: List[Byte] = left.getBytes ::: right.getBytes
   }
 
-  final case class Leaf(byte: Byte, weight: Int) extends Tree {
-    def print: String        = s"L${byte.toChar}"
-    def getWeight: Int       = weight
-    def getBytes: List[Byte] = List(byte)
+  final case class Leaf(byte: Byte, weight: Option[Int]) extends Tree {
+    def print: String          = s"L${byte.toChar}"
+    def getWeight: Option[Int] = weight
+    def getBytes: List[Byte]   = List(byte)
   }
 
   def mergeTrees(left: Tree, right: Tree): Fork = Fork(left, right)
