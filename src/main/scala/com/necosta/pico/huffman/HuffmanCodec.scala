@@ -6,28 +6,31 @@ import com.necosta.pico.huffman.Huffman.*
 
 import scala.annotation.tailrec
 
-object HuffmanCodec {
+sealed trait Codec extends CustomTypes {
 
-  // A byte maps to a list of bits
-  private type Table = Map[Byte, List[Boolean]]
+  def encode(tree: HuffmanTree)(bytes: List[Byte]): BitsV
 
-  // Validated data type for encoding: Error -> byte ; Success -> list of bits
-  private type BitsV = ValidatedNec[Byte, List[Boolean]]
+  def decode(tree: HuffmanTree)(bits: List[Boolean]): ByteV
+}
 
-  // Validated data type for decoding: Error -> list of bits ; Success -> list of bytes
-  private type ByteV = ValidatedNec[List[Boolean], List[Byte]]
+object HuffmanCodec extends Codec {
 
-  def encode(tree: Tree)(bytes: List[Byte]): BitsV = {
+  def encode(tree: HuffmanTree)(bytes: List[Byte]): BitsV = {
     val table = convertTreeToTable(tree, isRoot = true)
     @tailrec
     def doEncode(in: List[Byte], accBits: BitsV): BitsV = in match {
-      case h :: t => doEncode(t, accBits.combine(getBits(table)(h)))
-      case Nil    => accBits
+      case h :: t =>
+        val bits = table.find(_._1 == h) match {
+          case Some(v) => v._2.validNec
+          case None    => h.invalidNec
+        }
+        doEncode(t, accBits.combine(bits))
+      case Nil => accBits
     }
     doEncode(bytes, Nil.validNec)
   }
 
-  def decode(tree: Tree)(bits: List[Boolean]): ByteV = {
+  def decode(tree: HuffmanTree)(bits: List[Boolean]): ByteV = {
     val table     = convertTreeToTable(tree, isRoot = true)
     val swapTable = table.map { case (k, v) => v -> k }
     @tailrec
@@ -45,32 +48,13 @@ object HuffmanCodec {
     doDecode(bits, Nil.validNec, Nil)
   }
 
-  private def convertTreeToTable(tree: Tree, isRoot: Boolean): Table = tree match {
+  private def convertTreeToTable(tree: HuffmanTree, isRoot: Boolean): Table = tree match {
     case Fork(l, r) =>
       val lTable = convertTreeToTable(l, isRoot = false)
       val rTable = convertTreeToTable(r, isRoot = false)
-      mergeTables(lTable, rTable)
+      lTable.map { case (k, v) => k -> (true +: v) } ++ rTable.map { case (k, v) => k -> (false +: v) }
     case Leaf(c, _) if !isRoot => Map(c -> Nil)
     case Leaf(c, _)            => Map(c -> List(true))
     case NilTree               => Map.empty
-  }
-
-  private def mergeTables(table1: Table, table2: Table): Table = {
-    table1.map { case (k, v) => k -> (true +: v) } ++
-      table2.map { case (k, v) => k -> (false +: v) }
-  }
-
-  private def getBits(table: Table)(byte: Byte): BitsV = {
-    table.find(_._1 == byte) match {
-      case Some(v) => v._2.validNec
-      case None    => byte.invalidNec
-    }
-  }
-
-  private def getByte(table: Table)(bits: List[Boolean]): ByteV = {
-    table.find(_._2 == bits) match {
-      case Some(v) => List(v._1).validNec
-      case None    => bits.invalidNec
-    }
   }
 }

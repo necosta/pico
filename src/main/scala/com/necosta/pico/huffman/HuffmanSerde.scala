@@ -4,12 +4,19 @@ import com.necosta.pico.huffman.Huffman.*
 
 import scala.annotation.tailrec
 
-object HuffmanSerde {
-  def serialise(tree: Tree): String = tree.print
+sealed trait Serde {
 
-  def deserialise(str: String): Tree = {
+  def serialise(tree: HuffmanTree): String
+
+  def deserialise(str: String): HuffmanTree
+}
+
+object HuffmanSerde extends Serde {
+  def serialise(tree: HuffmanTree): String = tree.print
+
+  def deserialise(str: String): HuffmanTree = {
     @tailrec
-    def buildTree(list: List[Tree], acc: List[Tree]): Tree =
+    def buildTree(list: List[HuffmanTree], acc: List[HuffmanTree]): HuffmanTree =
       list match {
         case NilTree :: Leaf(l1, w1) :: Leaf(l2, w2) :: t =>
           buildTree(t, acc :+ Fork(Leaf(l1, w1), Leaf(l2, w2)))
@@ -28,8 +35,8 @@ object HuffmanSerde {
       }
 
     val allElements = str
-      .split(",")
-      .flatMap(s => List.fill[Tree](s.length - 2)(NilTree) :+ Leaf(s.last.toByte, None))
+      .split(Huffman.ItemSeparator)
+      .flatMap(s => List.fill[HuffmanTree](s.length - 2)(NilTree) :+ Leaf(s.last.toByte, None))
       .toList
     buildTree(allElements, List())
   }

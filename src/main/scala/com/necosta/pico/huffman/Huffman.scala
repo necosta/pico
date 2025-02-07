@@ -12,20 +12,24 @@ import cats.syntax.all.*
   */
 object Huffman {
 
-  sealed trait Tree {
+  val ItemSeparator: String = ","
+
+  sealed trait HuffmanTree {
     def print: String
+
     def getWeight: Option[Int]
+
     def getBytes: List[Byte]
   }
 
-  case object NilTree extends Tree {
+  case object NilTree extends HuffmanTree {
     def print: String          = "N"
     def getWeight: Option[Int] = None
     def getBytes: List[Byte]   = List.empty
   }
 
-  final case class Fork(left: Tree, right: Tree) extends Tree {
-    def print: String = s"F${left.print},${right.print}"
+  final case class Fork(left: HuffmanTree, right: HuffmanTree) extends HuffmanTree {
+    def print: String = s"F${left.print}$ItemSeparator${right.print}"
     def getWeight: Option[Int] = left.getWeight
       .flatMap(lw => right.getWeight.map(rw => lw + rw))
       .orElse(left.getWeight)
@@ -33,14 +37,14 @@ object Huffman {
     def getBytes: List[Byte] = left.getBytes ::: right.getBytes
   }
 
-  final case class Leaf(byte: Byte, weight: Option[Int]) extends Tree {
+  final case class Leaf(byte: Byte, weight: Option[Int]) extends HuffmanTree {
     def print: String          = s"L${byte.toChar}"
     def getWeight: Option[Int] = weight
     def getBytes: List[Byte]   = List(byte)
   }
 
-  def mergeTrees(left: Tree, right: Tree): Fork = Fork(left, right)
+  def mergeTrees(left: HuffmanTree, right: HuffmanTree): Fork = Fork(left, right)
 
-  def sortTrees(trees: List[Tree]): List[Tree] = trees
+  def sortTrees(trees: List[HuffmanTree]): List[HuffmanTree] = trees
     .sortWith((a, b) => a.getWeight < b.getWeight)
 }

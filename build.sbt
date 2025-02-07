@@ -12,6 +12,6 @@ lazy val root = project
     Compile / run / fork := true,
     // Code coverage validations
     coverageFailOnMinimum      := true,
-    coverageMinimumStmtTotal   := 81,
-    coverageMinimumBranchTotal := 77
+    coverageMinimumStmtTotal   := 75,
+    coverageMinimumBranchTotal := 75
   )

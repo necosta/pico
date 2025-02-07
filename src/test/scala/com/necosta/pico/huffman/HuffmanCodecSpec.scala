@@ -7,7 +7,7 @@ import org.scalatest.matchers.should.Matchers
 class HuffmanCodecSpec extends AnyFlatSpec with Matchers {
   "HuffmanCodec" should "encode/decode simple tree" in {
     val inputBytes = "abbbc".toList.map(_.toByte)
-    val inputTree  = HuffmanTree.createTree(inputBytes)
+    val inputTree  = HuffmanTree.create(inputBytes)
     // a -> true, true ; b -> false ; c -> true, false
     val expected     = List(true, true, false, false, false, true, false)
     val encodeResult = HuffmanCodec.encode(inputTree)(inputBytes)
@@ -18,7 +18,7 @@ class HuffmanCodecSpec extends AnyFlatSpec with Matchers {
 
   "HuffmanCodec" should "encode/decode complex tree" in {
     val inputBytes = "dddddabcxwz".toList.map(_.toByte)
-    val inputTree  = HuffmanTree.createTree(inputBytes)
+    val inputTree  = HuffmanTree.create(inputBytes)
     /* Fork(
        Leaf(d,Some(5)),
        Fork(
