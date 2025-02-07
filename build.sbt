@@ -9,5 +9,9 @@ lazy val root = project
     organization := "com.necosta",
     scalaVersion := scala3Version,
     libraryDependencies ++= libs ++ testLibs,
-    Compile / run / fork := true
+    Compile / run / fork := true,
+    // Code coverage validations
+    coverageFailOnMinimum      := true,
+    coverageMinimumStmtTotal   := 81,
+    coverageMinimumBranchTotal := 77
   )
