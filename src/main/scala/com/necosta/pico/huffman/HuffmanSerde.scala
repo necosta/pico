@@ -31,7 +31,6 @@ object HuffmanSerde {
       .split(",")
       .flatMap(s => List.fill[Tree](s.length - 2)(NilTree) :+ Leaf(s.last.toByte, None))
       .toList
-    println(allElements)
     buildTree(allElements, List())
   }
 }
