@@ -1,4 +1,4 @@
-# Pico (v2)
+# Pico
 
 Lossless data compression/decompression app using Cats Effect library.
 

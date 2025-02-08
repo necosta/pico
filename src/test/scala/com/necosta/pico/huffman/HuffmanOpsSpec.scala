@@ -6,9 +6,8 @@ import org.scalatest.matchers.should.Matchers
 class HuffmanOpsSpec extends AnyFlatSpec with Matchers {
   "HuffmanOps" should "map bits to bytes" in {
     val inputByte = 'a'.toByte
-    println(inputByte.toInt.toBinaryString)
-    val input = inputByte.toInt.toBinaryString.toList.map(_ == '1')
-    val res   = HuffmanOps.bitToByte(input)
+    val input     = inputByte.toInt.toBinaryString.toList.map(_ == '1')
+    val res       = HuffmanOps.bitToByte(input)
     res.map(_._1) shouldBe List(inputByte - 128)
     res.map(_._2) shouldBe List(1)
   }

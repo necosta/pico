@@ -5,7 +5,7 @@ val scala3Version = "3.6.3"
 lazy val root = project
   .in(file("."))
   .settings(
-    name         := "pico2",
+    name         := "pico",
     organization := "com.necosta",
     scalaVersion := scala3Version,
     libraryDependencies ++= libs ++ testLibs,
