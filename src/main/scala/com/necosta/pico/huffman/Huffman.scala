@@ -12,20 +12,19 @@ import cats.syntax.all.*
   */
 object Huffman {
 
-  val ItemSeparator: String = ","
+  val ItemSeparator: Char = ','
 
   sealed trait HuffmanTree {
+    // Used for serialization
     def print: String
 
+    // To define branching
     def getWeight: Option[Int]
-
-    def getBytes: List[Byte]
   }
 
   case object NilTree extends HuffmanTree {
     def print: String          = "N"
     def getWeight: Option[Int] = None
-    def getBytes: List[Byte]   = List.empty
   }
 
   final case class Fork(left: HuffmanTree, right: HuffmanTree) extends HuffmanTree {
@@ -34,13 +33,11 @@ object Huffman {
       .flatMap(lw => right.getWeight.map(rw => lw + rw))
       .orElse(left.getWeight)
       .orElse(right.getWeight)
-    def getBytes: List[Byte] = left.getBytes ::: right.getBytes
   }
 
   final case class Leaf(byte: Byte, weight: Option[Int]) extends HuffmanTree {
     def print: String          = s"L${byte.toChar}"
     def getWeight: Option[Int] = weight
-    def getBytes: List[Byte]   = List(byte)
   }
 
   def mergeTrees(left: HuffmanTree, right: HuffmanTree): Fork = Fork(left, right)

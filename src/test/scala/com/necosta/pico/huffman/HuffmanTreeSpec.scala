@@ -11,9 +11,6 @@ class HuffmanTreeSpec extends AnyFlatSpec with Matchers {
     val expected = NilTree
     val result   = HuffmanTree.create(input)
     result shouldBe expected
-    result.print shouldBe expected.print
-    result.getWeight shouldBe expected.getWeight
-    result.getBytes shouldBe expected.getBytes
   }
 
   "HuffmanTree" should "create tree for single element" in {
