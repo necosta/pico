@@ -9,3 +9,10 @@ target/
 .bsp/
 .idea/
 *.iml
+
+# Ignore txt files except example file
+*.txt
+!source.txt
+
+# Ignore compressed files
+*.pico

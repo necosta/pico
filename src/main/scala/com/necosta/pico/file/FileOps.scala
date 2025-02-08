@@ -14,10 +14,9 @@ trait Ops {
   def decompress(): IO[Unit]
 }
 
-class FileOps(sourceFileName: String) extends Ops {
+class FileOps(sourceFile: File) extends Ops {
 
   private val FileExtension = "pico"
-  private val sourceFile    = new File(sourceFileName)
   private val targetFile    = new File(s"${sourceFile.getPath}.$FileExtension")
 
   def compress(): IO[Unit] = {

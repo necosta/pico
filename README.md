@@ -14,6 +14,9 @@ Lossless data compression/decompression app using Cats Effect library.
 * Run unit tests -> `sbt test`
 * Run unit tests with code coverage report -> `sbt unitTests` (see [alias.sbt](alias.sbt))
   * Check report on [index.html](target/scala-3.6.3/scoverage-report/index.html)
+* Run program:
+  * **Compress** with `sbt "run compress -f source.txt"`
+  * **Decompress** with `sbt "run decompress -f source.txt.pico"`
 
 ### Licensing
 
