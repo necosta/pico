@@ -15,6 +15,7 @@ trait Ops {
 
 class FileOps(sourceFile: File) extends Ops {
 
+  private val ChunkDelimiter          = '>'
   private val ChunkSize               = 1024
   private val CompressedFileExtension = ".pico"
 
@@ -24,7 +25,8 @@ class FileOps(sourceFile: File) extends Ops {
       .chunkN(ChunkSize, allowFewer = true)
       .map(bytes => FileCodec.encode(bytes.toList))
       .flatMap {
-        case Right(encodedBytes) => fs2.Stream.chunk(fs2.Chunk.from(encodedBytes))
+        case Right(encodedBytes) =>
+          fs2.Stream.chunk(fs2.Chunk.from(encodedBytes) ++ fs2.Chunk.singleton(ChunkDelimiter.toByte))
         // ToDo: Improve on raising runtime exception
         case Left(errorMessage) => fs2.Stream.raiseError[IO](new RuntimeException(errorMessage))
       }
@@ -36,7 +38,7 @@ class FileOps(sourceFile: File) extends Ops {
   def decompress(): IO[Unit] = {
     Files[IO]
       .readAll(Path(sourceFile.getPath))
-      .chunkN(ChunkSize, allowFewer = true)
+      .split(_ == ChunkDelimiter.toByte)
       .map(bytes => FileCodec.decode(bytes.toList))
       .flatMap {
         case Right(decodedBytes) => fs2.Stream.chunk(fs2.Chunk.from(decodedBytes))
@@ -52,13 +54,13 @@ class FileOps(sourceFile: File) extends Ops {
     // Add .pico to a compressed file
     if (isCompressed)
       new File(s"${sourceFile.getPath}$CompressedFileExtension")
-    // Remove .pico to a decompressed file or
-    // add .txt if source file does not have .pico extension
+    // Replace .pico with .txt on a decompressed file or
+    // just add .txt if source file does not have .pico extension
     else {
       val compressedFile = sourceFile.getPath
       if (compressedFile.endsWith(s"$CompressedFileExtension")) {
         val extensionLength = compressedFile.length - CompressedFileExtension.length
-        new File(s"${compressedFile.substring(0, extensionLength)}")
+        new File(s"${compressedFile.substring(0, extensionLength)}.txt")
       } else {
         new File(s"${sourceFile.getPath}.txt")
       }

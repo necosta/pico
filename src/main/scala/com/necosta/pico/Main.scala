@@ -1,6 +1,6 @@
 package com.necosta.pico
 
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{Clock, ExitCode, IO, IOApp}
 import com.necosta.pico.cli.{CLIParameters, Compress, Decompress}
 import com.necosta.pico.file.FileOps
 import io.github.vigoo.clipp.catseffect3.*
@@ -18,7 +18,21 @@ object Main extends IOApp {
   private def runInternal(params: CLIParameters): IO[Unit] =
     val fileOps = new FileOps(params.inputFile)
     params.compressionOption match {
-      case Compress   => fileOps.compress()
-      case Decompress => fileOps.decompress()
+      case Compress =>
+        for {
+          _     <- IO.println("Compressing file...")
+          start <- Clock[IO].monotonic
+          _     <- fileOps.compress()
+          stop  <- Clock[IO].monotonic
+          _     <- IO.println(s"File successfully compressed. Took ${(start - stop).toSeconds} seconds.")
+        } yield ()
+      case Decompress =>
+        for {
+          _     <- IO.println("Decompressing file...")
+          start <- Clock[IO].monotonic
+          _     <- fileOps.decompress()
+          stop  <- Clock[IO].monotonic
+          _     <- IO.println(s"File successfully decompressed. Took ${(start - stop).toSeconds} seconds.")
+        } yield ()
     }
 }
