@@ -20,19 +20,23 @@ object Main extends IOApp {
     params.compressionOption match {
       case Compress =>
         for {
-          _     <- IO.println("Compressing file...")
-          start <- Clock[IO].monotonic
-          _     <- fileOps.compress()
-          stop  <- Clock[IO].monotonic
-          _     <- IO.println(s"File successfully compressed. Took ${(start - stop).toSeconds} seconds.")
+          _        <- IO.println("Compressing file...")
+          start    <- Clock[IO].monotonic
+          (rc, wc) <- fileOps.compress()
+          stop     <- Clock[IO].monotonic
+          _        <- IO.println("File successfully compressed")
+          _        <- IO.println(s"Took ${(start - stop).toSeconds} seconds")
+          _        <- IO.println(s"Wrote $wc bytes from $rc input bytes")
         } yield ()
       case Decompress =>
         for {
-          _     <- IO.println("Decompressing file...")
-          start <- Clock[IO].monotonic
-          _     <- fileOps.decompress()
-          stop  <- Clock[IO].monotonic
-          _     <- IO.println(s"File successfully decompressed. Took ${(start - stop).toSeconds} seconds.")
+          _        <- IO.println("Decompressing file...")
+          start    <- Clock[IO].monotonic
+          (rc, wc) <- fileOps.decompress()
+          stop     <- Clock[IO].monotonic
+          _        <- IO.println(s"File successfully decompressed")
+          _        <- IO.println(s"Took ${(start - stop).toSeconds} seconds")
+          _        <- IO.println(s"Wrote $wc bytes from $rc input bytes")
         } yield ()
     }
 }
