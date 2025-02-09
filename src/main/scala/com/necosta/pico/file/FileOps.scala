@@ -4,7 +4,6 @@ import cats.effect.IO
 import fs2.io.file.{Files, Path}
 
 import java.io.File
-import java.nio.charset.StandardCharsets
 
 trait Ops {
   // Compress a given txt file into pico file
@@ -16,16 +15,20 @@ trait Ops {
 
 class FileOps(sourceFile: File) extends Ops {
 
-  private val FileExtension = "pico"
-  private val targetFile    = new File(s"${sourceFile.getPath}.$FileExtension")
+  private val ChunkSize               = 1024
+  private val CompressedFileExtension = ".pico"
 
   def compress(): IO[Unit] = {
     Files[IO]
       .readAll(Path(sourceFile.getPath))
-      .chunkN(1024, allowFewer = true)
-      .evalTapChunk(x => IO.println(new String(x.toArray, StandardCharsets.UTF_8)))
-      .flatMap(fs2.Stream.chunk)
-      .through(Files[IO].writeAll(Path(targetFile.getPath)))
+      .chunkN(ChunkSize, allowFewer = true)
+      .map(bytes => FileCodec.encode(bytes.toList))
+      .flatMap {
+        case Right(encodedBytes) => fs2.Stream.chunk(fs2.Chunk.from(encodedBytes))
+        // ToDo: Improve on raising runtime exception
+        case Left(errorMessage) => fs2.Stream.raiseError[IO](new RuntimeException(errorMessage))
+      }
+      .through(Files[IO].writeAll(Path(setTargetFile(isCompressed = true).getPath)))
       .compile
       .drain
   }
@@ -33,11 +36,32 @@ class FileOps(sourceFile: File) extends Ops {
   def decompress(): IO[Unit] = {
     Files[IO]
       .readAll(Path(sourceFile.getPath))
-      .chunkN(1024, allowFewer = true)
-      .evalTapChunk(x => IO.println(new String(x.toArray, StandardCharsets.UTF_8)))
-      .flatMap(fs2.Stream.chunk)
-      .through(Files[IO].writeAll(Path(targetFile.getPath)))
+      .chunkN(ChunkSize, allowFewer = true)
+      .map(bytes => FileCodec.decode(bytes.toList))
+      .flatMap {
+        case Right(decodedBytes) => fs2.Stream.chunk(fs2.Chunk.from(decodedBytes))
+        // ToDo: Improve on raising runtime exception
+        case Left(errorMessage) => fs2.Stream.raiseError[IO](new RuntimeException(errorMessage))
+      }
+      .through(Files[IO].writeAll(Path(setTargetFile(isCompressed = false).getPath)))
       .compile
       .drain
+  }
+
+  private def setTargetFile(isCompressed: Boolean): File = {
+    // Add .pico to a compressed file
+    if (isCompressed)
+      new File(s"${sourceFile.getPath}$CompressedFileExtension")
+    // Remove .pico to a decompressed file or
+    // add .txt if source file does not have .pico extension
+    else {
+      val compressedFile = sourceFile.getPath
+      if (compressedFile.endsWith(s"$CompressedFileExtension")) {
+        val extensionLength = compressedFile.length - CompressedFileExtension.length
+        new File(s"${compressedFile.substring(0, extensionLength)}")
+      } else {
+        new File(s"${sourceFile.getPath}.txt")
+      }
+    }
   }
 }

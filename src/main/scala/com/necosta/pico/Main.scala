@@ -1,7 +1,7 @@
 package com.necosta.pico
 
 import cats.effect.{ExitCode, IO, IOApp}
-import com.necosta.pico.cli.{CLIParameters, Compress, CompressionOption, Decompress}
+import com.necosta.pico.cli.{CLIParameters, Compress, Decompress}
 import com.necosta.pico.file.FileOps
 import io.github.vigoo.clipp.catseffect3.*
 

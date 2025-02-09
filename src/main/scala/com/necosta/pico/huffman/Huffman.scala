@@ -1,6 +1,5 @@
 package com.necosta.pico.huffman
 
-import cats.Show
 import cats.syntax.all.*
 
 /** Huffman represents a binary tree.

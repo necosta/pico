@@ -1,6 +1,5 @@
 package com.necosta.pico.huffman
 
-import cats.data.ValidatedNec
 import cats.syntax.all.*
 import com.necosta.pico.huffman.Huffman.*
 
