@@ -13,6 +13,14 @@ class HuffmanSerdeSpec extends AnyFlatSpec with Matchers {
     HuffmanSerde.deserialise(expected) shouldBe input
   }
 
+  "HuffmanSerde" should "serialise/deserialise simple tree with comma char" in {
+    // Ignore weights for serde
+    val input    = Fork(Leaf('a', None), Fork(Leaf(',', None), Leaf('b', None)))
+    val expected = "FLa,FL,,,Lb"
+    HuffmanSerde.serialise(input) shouldBe expected
+    HuffmanSerde.deserialise(expected) shouldBe input
+  }
+
   "HuffmanSerde" should "serialise/deserialise complex tree" in {
     // Ignore weights for serde
     val input = Fork(

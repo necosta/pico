@@ -35,7 +35,9 @@ object HuffmanSerde extends Serde {
       }
 
     val allElements = str
+      .replace(Huffman.EscapedItemSeparator, NulChar.toString)
       .split(Huffman.ItemSeparator)
+      .map(_.replace(NulChar.toString, Huffman.ItemSeparator.toString))
       .flatMap(s => List.fill[HuffmanTree](s.length - 2)(NilTree) :+ Leaf(s.last.toByte, None))
       .toList
     buildTree(allElements, List())

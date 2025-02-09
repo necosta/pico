@@ -25,7 +25,7 @@ object Main extends IOApp {
           (rc, wc) <- fileOps.compress()
           stop     <- Clock[IO].monotonic
           _        <- IO.println("File successfully compressed")
-          _        <- IO.println(s"Took ${(start - stop).toSeconds} seconds")
+          _        <- IO.println(s"Took ${(stop - start).toSeconds} seconds")
           _        <- IO.println(s"Wrote $wc bytes from $rc input bytes")
         } yield ()
       case Decompress =>
@@ -35,7 +35,7 @@ object Main extends IOApp {
           (rc, wc) <- fileOps.decompress()
           stop     <- Clock[IO].monotonic
           _        <- IO.println(s"File successfully decompressed")
-          _        <- IO.println(s"Took ${(start - stop).toSeconds} seconds")
+          _        <- IO.println(s"Took ${(stop - start).toSeconds} seconds")
           _        <- IO.println(s"Wrote $wc bytes from $rc input bytes")
         } yield ()
     }

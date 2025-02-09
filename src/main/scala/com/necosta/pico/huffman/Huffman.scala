@@ -11,7 +11,9 @@ import cats.syntax.all.*
   */
 object Huffman {
 
-  val ItemSeparator: Char = ','
+  val ItemSeparator: Char          = ','
+  val EscapedItemSeparator: String = ",,"
+  val NulChar: Char                = '\u0000'
 
   sealed trait HuffmanTree {
     // Used for serialization
@@ -35,7 +37,10 @@ object Huffman {
   }
 
   final case class Leaf(byte: Byte, weight: Option[Int]) extends HuffmanTree {
-    def print: String          = s"L${byte.toChar}"
+    def print: String = {
+      val escapedValue = if (byte.toChar == ItemSeparator) EscapedItemSeparator else byte.toChar.toString
+      s"L$escapedValue"
+    }
     def getWeight: Option[Int] = weight
   }
 
