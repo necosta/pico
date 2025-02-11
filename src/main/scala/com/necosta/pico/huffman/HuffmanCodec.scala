@@ -32,7 +32,7 @@ class HuffmanCodec[F[_]: { Sync, Logger }] extends Codec[F] {
     for {
       _ <- Logger[F].trace("doEncode bytes: " + bytes.size)
       table = convertTreeToTable(tree, isRoot = true)
-      _ <- Logger[F].trace("Table: " + table.map { case (k, v) => (k.toChar, v)}.mkString(", "))
+      _ <- Logger[F].trace("Table: " + table.map { case (k, v) => (k.toChar, v) }.mkString(", "))
       (bitsV, iterations) = doEncode(bytes, Nil.validNec, 0)(table)
       _ <- Logger[F].trace("doEncode iterations: " + iterations)
     } yield bitsV
@@ -55,7 +55,7 @@ class HuffmanCodec[F[_]: { Sync, Logger }] extends Codec[F] {
       _ <- Logger[F].trace("doDecode bits: " + bits.size)
       table     = convertTreeToTable(tree, isRoot = true)
       swapTable = table.map { case (k, v) => v -> k }
-      _ <- Logger[F].trace("Table: " + swapTable.map { case (k, v) => (k, v.toChar)}.mkString(", "))
+      _ <- Logger[F].trace("Table: " + swapTable.map { case (k, v) => (k, v.toChar) }.mkString(", "))
       (bitsV, iterations) = doDecode(bits, Nil.validNec, Nil, 0)(swapTable)
       _ <- Logger[F].trace("doDecode iterations: " + iterations)
     } yield bitsV

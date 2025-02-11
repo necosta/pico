@@ -1,20 +1,23 @@
 package com.necosta.pico.huffman
 
+import cats.Applicative
+import cats.syntax.all.*
 import com.necosta.pico.huffman.Huffman.*
+import org.typelevel.log4cats.Logger
 
 import scala.annotation.tailrec
 
-sealed trait Serde {
+sealed trait Serde[F[_]] {
 
-  def serialise(tree: HuffmanTree): String
+  def serialise(tree: HuffmanTree): F[String]
 
-  def deserialise(str: String): HuffmanTree
+  def deserialise(str: String): F[HuffmanTree]
 }
 
-object HuffmanSerde extends Serde {
-  def serialise(tree: HuffmanTree): String = tree.print
+class HuffmanSerde[F[_]: { Applicative, Logger }] extends Serde[F] {
+  def serialise(tree: HuffmanTree): F[String] = tree.print.pure[F]
 
-  def deserialise(str: String): HuffmanTree = {
+  def deserialise(str: String): F[HuffmanTree] = {
     @tailrec
     def buildTree(list: List[HuffmanTree], acc: List[HuffmanTree]): HuffmanTree =
       list match {
@@ -40,6 +43,9 @@ object HuffmanSerde extends Serde {
       .map(_.replace(NulChar.toString, Huffman.ItemSeparator.toString))
       .flatMap(s => List.fill[HuffmanTree](s.length - 2)(NilTree) :+ Leaf(s.last.toByte, None))
       .toList
-    buildTree(allElements, List())
+    for {
+      _ <- Logger[F].trace("All elements: " + allElements.size)
+      res = buildTree(allElements, List())
+    } yield res
   }
 }

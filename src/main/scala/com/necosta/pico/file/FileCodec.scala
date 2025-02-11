@@ -52,10 +52,10 @@ class FileCodec[F[_]: { Async, Logger }] extends Codec[F] {
     for {
       _ <- Logger[F].debug(s"Decoding ${b.size} bytes")
       (treeBytes, dataBytes) = b.splitAt(b.indexOf(TreeSeparator))
-      _ <- Logger[F].debug(s"Parsed tree with ${treeBytes.size} bytes")
-      _ <- Logger[F].debug(s"Parsed data with ${dataBytes.size} bytes")
-      tree = HuffmanSerde.deserialise(treeBytes.map(_.toChar).mkString)
-      _ <- Logger[F].debug(s"Created tree ${tree.print}")
+      _    <- Logger[F].debug(s"Parsed tree with ${treeBytes.size} bytes")
+      _    <- Logger[F].debug(s"Parsed data with ${dataBytes.size} bytes")
+      tree <- HuffmanSerde[F].deserialise(treeBytes.map(_.toChar).mkString)
+      _    <- Logger[F].debug(s"Created tree ${tree.print}")
       boolList = HuffmanOps.byteToBit(dataBytes.drop(1))
       bytes <- HuffmanCodec[F].decode(tree)(boolList)
       res = bytes match {
