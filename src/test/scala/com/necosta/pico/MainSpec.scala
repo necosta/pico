@@ -1,34 +1,27 @@
 package com.necosta.pico
 
 import cats.effect.ExitCode
-import cats.effect.unsafe.implicits.global
-import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
+import cats.effect.testing.scalatest.AsyncIOSpec
 
-class MainSpec extends AnyFlatSpec with Matchers {
-  // ToDo: Handle exception (return success with ExitCode.Error)
+class MainSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
   "Main" should "fail when no arguments" in {
-    Main
-      .run(List.empty[String])
-      .attempt
-      .map(_.isLeft shouldBe true)
+    val res = Main.run(List.empty[String])
+    res.asserting(_ shouldBe ExitCode.Error)
   }
 
   "Main" should "fail with invalid command" in {
-    val res = Main
-      .run(List[String]("invalid"))
-      .unsafeRunSync()
-    res shouldBe ExitCode.Error
+    val res = Main.run(List[String]("invalid"))
+    res.asserting(_ shouldBe ExitCode.Error)
   }
 
   "Main" should "fail with invalid command arguments" in {
-    val res = Main
-      .run(List[String]("compress", "-f"))
-      .unsafeRunSync()
-    res shouldBe ExitCode.Error
+    val res = Main.run(List[String]("compress", "-f"))
+    res.asserting(_ shouldBe ExitCode.Error)
   }
 
-  // ToDo: Handle invalid file exception
+  // ToDo: Handle invalid file runtime exception
   "Main" should "fail with invalid command file" in {
     Main
       .run(List[String]("compress", "-f", "invalid.txt"))
@@ -36,10 +29,13 @@ class MainSpec extends AnyFlatSpec with Matchers {
       .map(_.isLeft shouldBe true)
   }
 
-  "Main" should "succeed with valid arguments" in {
-    val res = Main
-      .run(List[String]("compress", "-f", "source.txt"))
-      .unsafeRunSync()
-    res shouldBe ExitCode.Success
+  "Main" should "succeed with valid compress command arguments" in {
+    val res = Main.run(List[String]("compress", "-f", "source.txt"))
+    res.asserting(_ shouldBe ExitCode.Success)
+  }
+
+  "Main" should "succeed with valid decompress command  arguments" in {
+    val res = Main.run(List[String]("decompress", "-f", "source.txt.pico"))
+    res.asserting(_ shouldBe ExitCode.Success)
   }
 }

@@ -2,23 +2,27 @@ package com.necosta.pico.file
 
 import cats.syntax.all.*
 import cats.data.Validated.*
-import com.necosta.pico.huffman.{HuffmanCodec, HuffmanSerde, HuffmanTree, HuffmanOps}
+import cats.effect.Sync
+import com.necosta.pico.huffman.{HuffmanCodec, HuffmanOps, HuffmanSerde, HuffmanTree}
 
-trait Codec {
+trait Codec[F[_]] {
 
-  def encode(b: List[Byte]): Either[String, List[Byte]]
+  def encode(b: List[Byte]): F[Either[String, List[Byte]]]
 
-  def decode(b: List[Byte]): Either[String, List[Byte]]
+  def decode(b: List[Byte]): F[Either[String, List[Byte]]]
 }
 
-object FileCodec extends Codec {
-
+object FileCodec {
   val TreeSeparator: Char = '|'
+}
 
-  def encode(b: List[Byte]): Either[String, List[Byte]] =
+class FileCodec[F[_]: Sync] extends Codec[F] {
+  import FileCodec.*
+
+  def encode(b: List[Byte]): F[Either[String, List[Byte]]] = {
     val tree = HuffmanTree.create(b)
     val bits = HuffmanCodec.encode(tree)(b)
-    bits match {
+    val res = bits match {
       case Valid(boolList) =>
         val bytesAndOffset = HuffmanOps.bitToByte(boolList)
         val treeBytes      = tree.print.map(_.toByte).toList
@@ -36,13 +40,15 @@ object FileCodec extends Codec {
           .map(v => s"(${v.length} times)")
         necErrorsGrouped.show.asLeft[List[Byte]]
     }
+    Sync[F].delay(res)
+  }
 
-  def decode(b: List[Byte]): Either[String, List[Byte]] =
+  def decode(b: List[Byte]): F[Either[String, List[Byte]]] = {
     val (treeBytes, dataBytes) = b.splitAt(b.indexOf(TreeSeparator))
     val tree                   = HuffmanSerde.deserialise(treeBytes.map(_.toChar).mkString)
     val boolList               = HuffmanOps.byteToBit(dataBytes.drop(1))
     val bytes                  = HuffmanCodec.decode(tree)(boolList)
-    bytes match {
+    val res = bytes match {
       case Valid(bytes) => bytes.asRight[String]
       case Invalid(necErrors) =>
         val necErrorsGrouped = necErrors
@@ -54,4 +60,6 @@ object FileCodec extends Codec {
           .map(c => s"(${c.length} times)")
         necErrorsGrouped.show.asLeft[List[Byte]]
     }
+    Sync[F].delay(res)
+  }
 }

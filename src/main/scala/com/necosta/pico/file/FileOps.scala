@@ -32,7 +32,7 @@ class FileOps(sourceFile: File) extends Ops {
         .readAll(Path(sourceFile.getPath))
         .chunkN(ChunkSize, allowFewer = true)
         .evalTap(chunk => byteCounter.update { case (rc, wc) => (rc + chunk.size, wc) })
-        .map(bytes => FileCodec.encode(bytes.toList))
+        .evalMap(bytes => FileCodec[IO].encode(bytes.toList))
         .flatMap {
           case Right(encodedBytes) =>
             fs2.Stream.chunk(fs2.Chunk.from(encodedBytes) ++ fs2.Chunk.singleton(ChunkDelimiter.toByte))
@@ -52,9 +52,9 @@ class FileOps(sourceFile: File) extends Ops {
       byteCounter <- Ref.of[IO, ReadWriteCount]((0L, 0L))
       _ <- Files[IO]
         .readAll(Path(sourceFile.getPath))
+        .evalTap(chunk => byteCounter.update { case (rc, wc) => (rc + 1, wc) })
         .split(_ == ChunkDelimiter.toByte)
-        .evalTap(chunk => byteCounter.update { case (rc, wc) => (rc + chunk.size, wc) })
-        .map(bytes => FileCodec.decode(bytes.toList))
+        .evalMap(bytes => FileCodec[IO].decode(bytes.toList))
         .flatMap {
           case Right(decodedBytes) => fs2.Stream.chunk(fs2.Chunk.from(decodedBytes))
           // ToDo: Improve on raising runtime exception
