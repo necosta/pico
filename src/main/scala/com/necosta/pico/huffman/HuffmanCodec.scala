@@ -1,50 +1,64 @@
 package com.necosta.pico.huffman
 
+import cats.effect.Sync
 import cats.syntax.all.*
 import com.necosta.pico.huffman.Huffman.*
+import org.typelevel.log4cats.Logger
 
 import scala.annotation.tailrec
 
-sealed trait Codec extends CustomTypes {
+sealed trait Codec[F[_]] extends CustomTypes {
 
-  def encode(tree: HuffmanTree)(bytes: List[Byte]): BitsV
+  def encode(tree: HuffmanTree)(bytes: List[Byte]): F[BitsV]
 
-  def decode(tree: HuffmanTree)(bits: List[Boolean]): ByteV
+  def decode(tree: HuffmanTree)(bits: List[Boolean]): F[ByteV]
 }
 
-object HuffmanCodec extends Codec {
+class HuffmanCodec[F[_]: { Sync, Logger }] extends Codec[F] {
 
-  def encode(tree: HuffmanTree)(bytes: List[Byte]): BitsV = {
-    val table = convertTreeToTable(tree, isRoot = true)
+  def encode(tree: HuffmanTree)(bytes: List[Byte]): F[BitsV] = {
     @tailrec
-    def doEncode(in: List[Byte], accBits: BitsV): BitsV = in match {
-      case h :: t =>
-        val bits = table.find(_._1 == h) match {
-          case Some(v) => v._2.validNec
-          case None    => h.invalidNec
-        }
-        doEncode(t, accBits.combine(bits))
-      case Nil => accBits
-    }
-    doEncode(bytes, Nil.validNec)
-  }
-
-  def decode(tree: HuffmanTree)(bits: List[Boolean]): ByteV = {
-    val table     = convertTreeToTable(tree, isRoot = true)
-    val swapTable = table.map { case (k, v) => v -> k }
-    @tailrec
-    def doDecode(in: List[Boolean], accBytes: ByteV, accBits: List[Boolean]): ByteV =
+    def doEncode(in: List[Byte], accBits: BitsV, it: Int)(table: Table): (BitsV, Int) =
       in match {
         case h :: t =>
-          val acc = swapTable.get(accBits :+ h) match {
+          val bits = table.find(_._1 == h) match {
+            case Some(v) => v._2.validNec
+            case None    => h.invalidNec
+          }
+          doEncode(t, accBits.combine(bits), it + 1)(table)
+        case Nil => (accBits, it)
+      }
+
+    for {
+      _ <- Logger[F].trace("doEncode bytes: " + bytes.size)
+      table = convertTreeToTable(tree, isRoot = true)
+      _ <- Logger[F].trace("Table: " + table.map { case (k, v) => (k.toChar, v)}.mkString(", "))
+      (bitsV, iterations) = doEncode(bytes, Nil.validNec, 0)(table)
+      _ <- Logger[F].trace("doEncode iterations: " + iterations)
+    } yield bitsV
+  }
+
+  def decode(tree: HuffmanTree)(bits: List[Boolean]): F[ByteV] = {
+    @tailrec
+    def doDecode(in: List[Boolean], accBytes: ByteV, accBits: List[Boolean], it: Int)(table: SwapTable): (ByteV, Int) =
+      in match {
+        case h :: t =>
+          val (newAccBytes, newAccBits) = table.get(accBits :+ h) match {
             case Some(b) => (accBytes.combine(List(b).validNec), List.empty)
             case None    => (accBytes, accBits :+ h)
           }
-          val (newAccBytes, newAccBits) = acc
-          doDecode(t, newAccBytes, newAccBits)
-        case Nil => accBytes
+          doDecode(t, newAccBytes, newAccBits, it + 1)(table)
+        case Nil => (accBytes, it)
       }
-    doDecode(bits, Nil.validNec, Nil)
+
+    for {
+      _ <- Logger[F].trace("doDecode bits: " + bits.size)
+      table     = convertTreeToTable(tree, isRoot = true)
+      swapTable = table.map { case (k, v) => v -> k }
+      _ <- Logger[F].trace("Table: " + swapTable.map { case (k, v) => (k, v.toChar)}.mkString(", "))
+      (bitsV, iterations) = doDecode(bits, Nil.validNec, Nil, 0)(swapTable)
+      _ <- Logger[F].trace("doDecode iterations: " + iterations)
+    } yield bitsV
   }
 
   private def convertTreeToTable(tree: HuffmanTree, isRoot: Boolean): Table = tree match {

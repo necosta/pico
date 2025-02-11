@@ -24,9 +24,9 @@ class FileCodec[F[_]: { Async, Logger }] extends Codec[F] {
     for {
       _ <- Logger[F].debug(s"Encoding ${b.size} bytes")
       tree = HuffmanTree.create(b)
-      _ <- Logger[F].debug(s"Created tree ${tree.print}")
-      bits = HuffmanCodec.encode(tree)(b)
-      _ <- Logger[F].debug(s"Encoding succeeded: ${bits.isValid}")
+      _    <- Logger[F].debug(s"Created tree ${tree.print}")
+      bits <- HuffmanCodec[F].encode(tree)(b)
+      _    <- Logger[F].debug(s"Encoding succeeded: ${bits.isValid}")
       res = bits match {
         case Valid(boolList) =>
           val bytesAndOffset = HuffmanOps.bitToByte(boolList)
@@ -57,7 +57,7 @@ class FileCodec[F[_]: { Async, Logger }] extends Codec[F] {
       tree = HuffmanSerde.deserialise(treeBytes.map(_.toChar).mkString)
       _ <- Logger[F].debug(s"Created tree ${tree.print}")
       boolList = HuffmanOps.byteToBit(dataBytes.drop(1))
-      bytes    = HuffmanCodec.decode(tree)(boolList)
+      bytes <- HuffmanCodec[F].decode(tree)(boolList)
       res = bytes match {
         case Valid(bytes) => bytes.asRight[String]
         case Invalid(necErrors) =>

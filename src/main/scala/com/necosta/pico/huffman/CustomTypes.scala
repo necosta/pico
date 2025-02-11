@@ -4,7 +4,8 @@ import cats.data.ValidatedNec
 
 trait CustomTypes {
   // A byte/char maps to a list of bits
-  type Table = Map[Byte, List[Boolean]]
+  type Table     = Map[Byte, List[Boolean]]
+  type SwapTable = Map[List[Boolean], Byte]
 
   // Validated data type for encoding: Error -> byte/char ; Success -> list of bits
   type BitsV = ValidatedNec[Byte, List[Boolean]]
