@@ -3,10 +3,14 @@ package com.necosta.pico.file
 import FileCodec.TreeSeparator
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
-import org.scalatest.flatspec.{AnyFlatSpec, AsyncFlatSpec}
+import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.noop.NoOpLogger
 
 class FileCodecSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
+  implicit val logger: Logger[IO] = NoOpLogger[IO]
+
   "FileCodec" should "encode/decode simple tree and data" in {
     val input        = "aaaaaa".toList.map(_.toByte)
     val treeExpected = List[Byte]('L'.toByte, 'a'.toByte, TreeSeparator.toByte)
