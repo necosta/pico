@@ -23,8 +23,8 @@ trait Ops[F[_]] {
 
 class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
 
-  private val ChunkDelimiter          = '>'
-  private val ChunkSize               = 1024 * 8
+  private val AllBytesRange           = (Byte.MinValue to Byte.MaxValue)
+  private val ChunkSize               = 1024
   private val CompressedFileExtension = ".pico"
 
   def compress(): F[ReadWriteCount] = {
@@ -37,7 +37,13 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
         .evalMap(bytes => FileCodec[F].encode(bytes.toList))
         .flatMap {
           case Right(encodedBytes) =>
-            fs2.Stream.chunk(fs2.Chunk.from(encodedBytes) ++ fs2.Chunk.singleton(ChunkDelimiter.toByte))
+            val firstValidDelimiter = AllBytesRange.find(!encodedBytes.contains(_))
+            val delimiter = firstValidDelimiter
+              // ToDo: Improve on raising runtime exception
+              .getOrElse(throw new RuntimeException("Could not find a valid delimiter. Reduce chunk"))
+              .toByte
+            // Wrap output with the target delimiter
+            fs2.Stream.chunk(fs2.Chunk.from(delimiter +: encodedBytes) ++ fs2.Chunk.singleton(delimiter))
           // ToDo: Improve on raising runtime exception
           case Left(errorMessage) => fs2.Stream.raiseError[F](new RuntimeException(errorMessage))
         }
@@ -50,12 +56,40 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
   }
 
   def decompress(): F[ReadWriteCount] = {
+    extension (stream: fs2.Stream[F, Byte])
+      // Inspired on fs2 .split, get chunk by collecting from the first char (where we identify the delimiter)
+      // to the second occurrence of that delimiter
+      private def splitByChunkDelimiter: fs2.Stream[F, fs2.Chunk[Byte]] = {
+        def loop(
+            buffer: fs2.Chunk[Byte],
+            s: fs2.Stream[F, Byte],
+            delimiter: Option[Byte]
+        ): fs2.Pull[F, fs2.Chunk[Byte], Unit] =
+          s.pull.uncons.flatMap {
+            case Some((hd, tl)) =>
+              // Get targetDelimiter from the first byte of the chunk
+              val targetDelimiter = delimiter.fold(hd.head.get)(identity)
+              val chunk           = delimiter.map(_ => hd).getOrElse(hd.drop(1))
+              chunk.indexWhere(_ == targetDelimiter) match {
+                case None => loop(buffer ++ chunk, tl, targetDelimiter.some)
+                case Some(idx) =>
+                  val pfx = chunk.take(idx)
+                  val b2  = buffer ++ pfx
+                  fs2.Pull.output1(b2) >> loop(fs2.Chunk.empty, tl.cons(chunk.drop(idx + 1)), targetDelimiter.some)
+              }
+            case None =>
+              if (buffer.nonEmpty) fs2.Pull.output1(buffer)
+              else fs2.Pull.done
+          }
+        loop(fs2.Chunk.empty, stream, None).stream
+      }
+
     for {
       byteCounter <- Ref.of[F, ReadWriteCount]((0L, 0L))
       _ <- Files[F]
         .readAll(Path(sourceFile.getPath))
-        .evalTap(chunk => byteCounter.update { case (rc, wc) => (rc + 1, wc) })
-        .split(_ == ChunkDelimiter.toByte)
+        .evalTap(_ => byteCounter.update { case (rc, wc) => (rc + 1, wc) })
+        .through(splitByChunkDelimiter)
         .evalMap(bytes => FileCodec[F].decode(bytes.toList))
         .flatMap {
           case Right(decodedBytes) => fs2.Stream.chunk(fs2.Chunk.from(decodedBytes))
