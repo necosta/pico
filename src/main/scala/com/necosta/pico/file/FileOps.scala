@@ -1,6 +1,5 @@
 package com.necosta.pico.file
 
-import cats.effect.Sync
 import cats.effect.kernel.{Async, Ref}
 import cats.syntax.all.*
 import fs2.io.file.{Files, Path}
@@ -23,7 +22,7 @@ trait Ops[F[_]] {
 
 class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
 
-  private val AllBytesRange           = (Byte.MinValue to Byte.MaxValue)
+  private val AllBytesRange           = Byte.MinValue to Byte.MaxValue
   private val ChunkSize               = 1024
   private val CompressedFileExtension = ".pico"
 
@@ -75,7 +74,7 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
                 case Some(idx) =>
                   val pfx = chunk.take(idx)
                   val b2  = buffer ++ pfx
-                  fs2.Pull.output1(b2) >> loop(fs2.Chunk.empty, tl.cons(chunk.drop(idx + 1)), targetDelimiter.some)
+                  fs2.Pull.output1(b2) >> loop(fs2.Chunk.empty, tl.cons(chunk.drop(idx + 1)), None)
               }
             case None =>
               if (buffer.nonEmpty) fs2.Pull.output1(buffer)
