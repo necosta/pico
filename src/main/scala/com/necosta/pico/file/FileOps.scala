@@ -9,9 +9,9 @@ import java.io.File
 
 trait Ops[F[_]] {
 
-  type ReadCount      = Long
-  type WriteCount     = Long
-  type ReadWriteCount = (ReadCount, WriteCount)
+  private type ReadCount  = Long
+  private type WriteCount = Long
+  type ReadWriteCount     = (ReadCount, WriteCount)
 
   // Compress a given txt file into pico file
   def compress(): F[ReadWriteCount]
@@ -29,7 +29,8 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
   def compress(): F[ReadWriteCount] = {
     for {
       byteCounter <- Ref.of[F, ReadWriteCount]((0L, 0L))
-      _ <- Files[F]
+      _ <- Files
+        .forAsync[F]
         .readAll(Path(sourceFile.getPath))
         .chunkN(ChunkSize, allowFewer = true)
         .evalTap(chunk => byteCounter.update { case (rc, wc) => (rc + chunk.size, wc) })
@@ -47,7 +48,7 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
           case Left(errorMessage) => fs2.Stream.raiseError[F](new RuntimeException(errorMessage))
         }
         .evalTap(_ => byteCounter.update { case (rc, wc) => (rc, wc + 1) })
-        .through(Files[F].writeAll(Path(setTargetFile(isCompressed = true).getPath)))
+        .through(Files.forAsync[F].writeAll(Path(setTargetFile(isCompressed = true).getPath)))
         .compile
         .drain
       res <- byteCounter.get
@@ -85,7 +86,8 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
 
     for {
       byteCounter <- Ref.of[F, ReadWriteCount]((0L, 0L))
-      _ <- Files[F]
+      _ <- Files
+        .forAsync[F]
         .readAll(Path(sourceFile.getPath))
         .evalTap(_ => byteCounter.update { case (rc, wc) => (rc + 1, wc) })
         .through(splitByChunkDelimiter)
@@ -96,7 +98,7 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
           case Left(errorMessage) => fs2.Stream.raiseError[F](new RuntimeException(errorMessage))
         }
         .evalTap(_ => byteCounter.update { case (rc, wc) => (rc, wc + 1) })
-        .through(Files[F].writeAll(Path(setTargetFile(isCompressed = false).getPath)))
+        .through(Files.forAsync[F].writeAll(Path(setTargetFile(isCompressed = false).getPath)))
         .compile
         .drain
       res <- byteCounter.get

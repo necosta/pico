@@ -10,6 +10,7 @@ lazy val root = project
     scalaVersion := scala3Version,
     libraryDependencies ++= libs ++ testLibs,
     Compile / run / fork := true,
+    scalacOptions += "-deprecation",
     // Code coverage validations
     coverageFailOnMinimum      := true,
     coverageMinimumStmtTotal   := 70,

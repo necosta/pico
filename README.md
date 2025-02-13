@@ -18,6 +18,28 @@ Lossless data compression/decompression app using Cats Effect library.
   * **Compress** with `sbt "run compress -f source.txt"`
   * **Decompress** with `sbt "run decompress -f source.txt.pico"`
 
+### Logic
+
+#### Compression
+
+1. Stream file data into fixed sized chunks
+2. For each chunk, build huffman tree and encode both tree and data
+3. Stream output into target file wrapping it with chunk delimiter
+
+### Decompression
+
+1. Stream compressed file data, splitting it by chunk delimiter
+2. For each chunk, decode huffman tree and with it, decode encoded data
+3. Stream output into target file
+
+### ToDo
+
+- [ ] Introduce parallel processing with `.parEvalMap`
+- [ ] Replace fixed chunk size with dynamic chunk evaluation
+- [ ] Improve logging and metrics
+- [ ] Fix open source code "ToDo's"
+- [ ] Release Scala native version
+
 ### Licensing
 
 See [LICENSE](LICENSE)
