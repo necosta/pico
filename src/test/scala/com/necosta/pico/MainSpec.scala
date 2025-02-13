@@ -21,12 +21,9 @@ class MainSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
     res.asserting(_ shouldBe ExitCode.Error)
   }
 
-  // ToDo: Handle invalid file runtime exception
   "Main" should "fail with invalid command file" in {
-    Main
-      .run(List[String]("compress", "-f", "invalid.txt"))
-      .attempt
-      .map(_.isLeft shouldBe true)
+    val res = Main.run(List[String]("compress", "-f", "invalid.txt"))
+    res.asserting(_ shouldBe ExitCode.Error)
   }
 
   "Main" should "succeed with valid compress command arguments" in {

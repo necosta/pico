@@ -9,9 +9,7 @@ import java.io.File
 
 trait Ops[F[_]] {
 
-  private type ReadCount  = Long
-  private type WriteCount = Long
-  type ReadWriteCount     = (ReadCount, WriteCount)
+  type ReadWriteCount = (Long, Long)
 
   // Compress a given txt file into pico file
   def compress(): F[ReadWriteCount]
