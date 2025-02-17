@@ -74,7 +74,10 @@ object Main extends IOApp {
   }
 
   inline private def getRatio(numerator: Long, denominator: Long): String =
-    val ratio = BigDecimal(numerator) / BigDecimal(denominator)
-      .setScale(2, RoundingMode.HALF_UP)
-    f"$ratio%.2f"
+    Option(denominator)
+      .filter(_ != 0L)
+      .map(d => BigDecimal(numerator) / BigDecimal(d))
+      .map(_.setScale(2, RoundingMode.HALF_UP))
+      .map("%.2f".format(_))
+      .getOrElse("NA")
 }

@@ -52,7 +52,7 @@ class HuffmanCodec[F[_]: { Sync, Logger }] extends Codec[F] {
       }
 
     for {
-      _ <- Logger[F].trace("doDecode bits: " + bits.size)
+      _ <- Logger[F].trace("doDecode bits: " + bits)
       table     = convertTreeToTable(tree, isRoot = true)
       swapTable = table.map { case (k, v) => v -> k }
       _ <- Logger[F].trace("Table: " + swapTable.map { case (k, v) => (k, v.toChar) }.mkString(", "))

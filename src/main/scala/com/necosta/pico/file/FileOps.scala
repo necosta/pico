@@ -6,6 +6,7 @@ import fs2.io.file.{Files, Path}
 import org.typelevel.log4cats.Logger
 
 import java.io.File
+import scala.annotation.tailrec
 
 trait Ops[F[_]] {
 
@@ -20,7 +21,7 @@ trait Ops[F[_]] {
 
 class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
 
-  private val AllBytesRange           = Byte.MinValue to Byte.MaxValue
+  private val ChunkDelimiter          = '§'
   private val ChunkSize               = 1024
   private val CompressedFileExtension = ".pico"
 
@@ -35,13 +36,9 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
         .evalMap(bytes => FileCodec[F].encode(bytes.toList))
         .flatMap {
           case Right(encodedBytes) =>
-            val firstValidDelimiter = AllBytesRange.find(!encodedBytes.contains(_))
-            val delimiter = firstValidDelimiter
-              // ToDo: Improve on raising runtime exception
-              .getOrElse(throw new RuntimeException("Could not find a valid delimiter. Reduce chunk"))
-              .toByte
+            val delimiter = findValidDelimiter(encodedBytes)
             // Wrap output with the target delimiter
-            fs2.Stream.chunk(fs2.Chunk.from(delimiter +: encodedBytes) ++ fs2.Chunk.singleton(delimiter))
+            fs2.Stream.chunk(fs2.Chunk.from(delimiter ++ encodedBytes ++ delimiter))
           // ToDo: Improve on raising runtime exception
           case Left(errorMessage) => fs2.Stream.raiseError[F](new RuntimeException(errorMessage))
         }
@@ -61,25 +58,35 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
         def loop(
             buffer: fs2.Chunk[Byte],
             s: fs2.Stream[F, Byte],
-            delimiter: Option[Byte]
+            accDelimiter: Option[List[Byte]],
+            targetDelimiter: Option[List[Byte]],
+            buildingDelimiter: Boolean
         ): fs2.Pull[F, fs2.Chunk[Byte], Unit] =
           s.pull.uncons.flatMap {
-            case Some((hd, tl)) =>
-              // Get targetDelimiter from the first byte of the chunk
-              val targetDelimiter = delimiter.fold(hd.head.get)(identity)
-              val chunk           = delimiter.map(_ => hd).getOrElse(hd.drop(1))
-              chunk.indexWhere(_ == targetDelimiter) match {
-                case None => loop(buffer ++ chunk, tl, targetDelimiter.some)
+            case Some((headChunk, tailStream)) =>
+              // Get delimiter from the first byte of the chunk - ToDo: Handle empty chunk scenario
+              val delimiter = targetDelimiter.fold(List(headChunk.toList.head))(identity)
+              headChunk.indexWhere(_ == delimiter.head) match {
+                case None =>
+                  loop(buffer ++ headChunk, tailStream, List.empty[Byte].some, targetDelimiter, false)
                 case Some(idx) =>
-                  val pfx = chunk.take(idx)
-                  val b2  = buffer ++ pfx
-                  fs2.Pull.output1(b2) >> loop(fs2.Chunk.empty, tl.cons(chunk.drop(idx + 1)), None)
+                  val d = accDelimiter.fold(delimiter)(_ ++ headChunk.toList)
+                  if (buildingDelimiter) {
+                    loop(buffer, tailStream, d.some, d.some, true)
+                  } else {
+                    if (d.some == targetDelimiter) {
+                      fs2.Pull.output1(buffer.dropRight(d.size - 1)) >>
+                        loop(fs2.Chunk.empty, tailStream, None, None, true)
+                    } else {
+                      loop(buffer ++ headChunk, tailStream, d.some, targetDelimiter, false)
+                    }
+                  }
               }
             case None =>
               if (buffer.nonEmpty) fs2.Pull.output1(buffer)
               else fs2.Pull.done
           }
-        loop(fs2.Chunk.empty, stream, None).stream
+        loop(fs2.Chunk.empty, stream, None, None, true).stream
       }
 
     for {
@@ -118,5 +125,22 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
         new File(s"${sourceFile.getPath}.txt")
       }
     }
+  }
+
+  private def findValidDelimiter(bytes: List[Byte]): List[Byte] = {
+
+    @tailrec
+    def findDelimiterInList(size: Int): List[Byte] = {
+      // Start with size 1 delimiter
+      val delimiter = List.fill(size)(ChunkDelimiter.toByte)
+      // if delimiter not in chunk, return
+      if (!bytes.sliding(size).contains(delimiter)) {
+        delimiter
+      } else { // If delimiter in data, find a delimiter of n + 1 bytes
+        findDelimiterInList(size + 1)
+      }
+    }
+
+    findDelimiterInList(1)
   }
 }

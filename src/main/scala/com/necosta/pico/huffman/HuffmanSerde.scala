@@ -44,7 +44,7 @@ class HuffmanSerde[F[_]: { Applicative, Logger }] extends Serde[F] {
       .flatMap(s => List.fill[HuffmanTree](s.length - 2)(NilTree) :+ Leaf(s.last.toByte, None))
       .toList
     for {
-      _ <- Logger[F].trace("All elements: " + allElements.size)
+      _ <- Logger[F].trace("All elements: " + allElements)
       res = buildTree(allElements, List())
     } yield res
   }
