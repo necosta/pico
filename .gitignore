@@ -10,9 +10,11 @@ target/
 .idea/
 *.iml
 
-# Ignore txt files except example file
+# Ignore txt files except sample files
 *.txt
-!source.txt
+!samples/sample_1kb.txt
+!samples/sample_10kb.txt
 
 # Ignore compressed files
 *.pico
+*.zip

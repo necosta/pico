@@ -1,6 +1,6 @@
 # Pico
 
-Lossless data compression/decompression app using Cats Effect library.
+Lossless data compression library built in Scala that leverages Cats Effect and FS2 libraries.
 
 ## Pre-requisites
 
@@ -15,8 +15,8 @@ Lossless data compression/decompression app using Cats Effect library.
 * Run unit tests with code coverage report -> `sbt unitTests` (see [alias.sbt](alias.sbt))
   * Check report on [index.html](target/scala-3.6.3/scoverage-report/index.html)
 * Run program:
-  * **Compress** with `sbt "run compress -f source.txt"`
-  * **Decompress** with `sbt "run decompress -f source.txt.pico"`
+  * **Compress** with `sbt "run compress -f samples/sample_1kb.txt"`
+  * **Decompress** with `sbt "run decompress -f samples/sample_1kb.txt.pico"`
 
 ### Logic
 
