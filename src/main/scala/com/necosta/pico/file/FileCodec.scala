@@ -39,7 +39,7 @@ class FileCodec[F[_]: { Async, Logger }] extends Codec[F] {
           val necErrorsGrouped = necErrors
             .map(_.toChar match {
               case c if c.isLetter => s"No encoder for value $c"
-              case _               => "No encoder for non-printable char"
+              case c               => s"No encoder for non-printable char with byte value ${c.toByte}"
             })
             .groupBy(str => str)
             .map(v => s"(${v.length} times)")

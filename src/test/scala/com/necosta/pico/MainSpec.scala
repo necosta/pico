@@ -27,12 +27,12 @@ class MainSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
   }
 
   "Main" should "succeed with valid compress command arguments" in {
-    val res = Main.run(List[String]("compress", "-f", "source.txt"))
+    val res = Main.run(List[String]("compress", "-f", "samples/sample_1kb.txt"))
     res.asserting(_ shouldBe ExitCode.Success)
   }
 
-  "Main" should "succeed with valid decompress command  arguments" in {
-    val res = Main.run(List[String]("decompress", "-f", "source.txt.pico"))
+  "Main" should "succeed with valid decompress command arguments" in {
+    val res = Main.run(List[String]("decompress", "-f", "samples/sample_1kb.txt.pico"))
     res.asserting(_ shouldBe ExitCode.Success)
   }
 }

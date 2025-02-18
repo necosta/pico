@@ -32,13 +32,12 @@ Lossless data compression library built in Scala that leverages Cats Effect and 
 2. For each chunk, decode huffman tree and with it, decode encoded data
 3. Stream output into target file
 
-### ToDo
+### Nice To Have
 
-- [ ] Introduce parallel processing with `.parEvalMap`
-- [ ] Replace fixed chunk size with dynamic chunk evaluation
-- [ ] Improve logging and metrics
-- [ ] Fix open source code "ToDo's"
-- [ ] Release Scala native version
+- [ ] Improve debug and trace level logging
+- [ ] Add verbose CLI parameter
+- [ ] Add time/benchmark metrics
+- [ ] Release as Scala native
 
 ### Licensing
 
