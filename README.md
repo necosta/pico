@@ -22,6 +22,7 @@ Lossless data compression library built in Scala that leverages Cats Effect and 
 
 * Run Async profiler -> `./asprof -d 30 -f profiler.html (pid)`
   * Get pid by running `jps -l | grep -i pico`
+  * Add options: `-e alloc` (memory), `-e lock` (lock contention), `-e wall` (wall clock time)
 * Run JMH benchmarks -> `sbt clean Jmh/run`
   * `sbt clean Jmh/run -i 3 -wi 3 -f 1 -t 2` -> (3 iterations, 3 warmup iterations, 1 fork, 2 threads)
 

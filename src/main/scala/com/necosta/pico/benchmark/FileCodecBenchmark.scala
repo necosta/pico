@@ -11,8 +11,8 @@ import java.util.concurrent.TimeUnit
 import scala.util.Random
 
 @BenchmarkMode(Array(Mode.AverageTime)) // Measures avg time per operation
-@OutputTimeUnit(TimeUnit.MILLISECONDS) // Outputs in milliseconds
-@State(Scope.Thread) // Each thread gets a separate instance
+@OutputTimeUnit(TimeUnit.MILLISECONDS)  // Outputs in milliseconds
+@State(Scope.Thread)                    // Each thread gets a separate instance
 class FileCodecBenchmark {
 
   private def getRandomByte = Random.nextInt(256).toByte

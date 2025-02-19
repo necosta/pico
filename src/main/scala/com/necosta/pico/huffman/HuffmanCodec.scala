@@ -17,17 +17,16 @@ sealed trait Codec[F[_]] extends CustomTypes {
 class HuffmanCodec[F[_]: { Sync, Logger }] extends Codec[F] {
 
   def encode(tree: HuffmanTree)(bytes: List[Byte]): F[BitsV] = {
-    @tailrec
     def doEncode(in: List[Byte], accBits: BitsV, it: Int)(table: Table): (BitsV, Int) =
-      in match {
-        case h :: t =>
-          val bits = table.find(_._1 == h) match {
-            case Some(v) => v._2.validNec
-            case None    => h.invalidNec
+      val bitsV: BitsV = in
+        .traverse { byte =>
+          table.find(_._1 == byte) match {
+            case Some((_, bits)) => bits.validNec
+            case None            => byte.invalidNec
           }
-          doEncode(t, accBits.combine(bits), it + 1)(table)
-        case Nil => (accBits, it)
-      }
+        }
+        .map(_.flatten)
+      (bitsV, in.length)
 
     for {
       _ <- Logger[F].trace("doEncode bytes: " + bytes)
