@@ -4,6 +4,7 @@ val scala3Version = "3.6.3"
 
 lazy val root = project
   .in(file("."))
+  .enablePlugins(JmhPlugin)
   .settings(
     name         := "pico",
     organization := "com.necosta",
