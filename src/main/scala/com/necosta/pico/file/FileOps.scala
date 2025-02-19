@@ -14,7 +14,7 @@ trait Ops[F[_]] {
   type ReadWriteCount = (Long, Long)
 
   // Compress a given txt file into pico file
-  def compress(): F[ReadWriteCount]
+  def compress(chunkSize: Option[Int]): F[ReadWriteCount]
 
   // Decompress a given pico file into txt file
   def decompress(): F[ReadWriteCount]
@@ -23,16 +23,18 @@ trait Ops[F[_]] {
 class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
 
   private val ChunkDelimiter          = '§'
-  private val ChunkSize               = 1024
+  private val KilobyteChunkSize       = 1024
+  private val DefaultChunkSize        = KilobyteChunkSize
   private val CompressedFileExtension = ".pico"
 
-  def compress(): F[ReadWriteCount] = {
+  def compress(chunkSize: Option[Int]): F[ReadWriteCount] = {
     for {
       byteCounter <- Ref.of[F, ReadWriteCount]((0L, 0L))
+      chunkSizeInBytes = chunkSize.fold(DefaultChunkSize)(_ * KilobyteChunkSize)
       _ <- Files
         .forAsync[F]
         .readAll(Path(sourceFile.getPath))
-        .chunkN(ChunkSize, allowFewer = true)
+        .chunkN(chunkSizeInBytes, allowFewer = true)
         .evalTapChunk(chunk => byteCounter.update { case (rc, wc) => (rc + chunk.size, wc) })
         .evalMapChunk(chunk => FileCodec[F].encode(chunk.toList))
         .flatMap(handleError(_)(encodedBytes => {
@@ -105,13 +107,13 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
 
   private def handleError(
       bytesOrError: Either[String, List[Byte]]
-  )(f1: List[Byte] => fs2.Chunk[Byte])(f2: String => FileProcessingError): fs2.Stream[F, Byte] = {
+  )(success: List[Byte] => fs2.Chunk[Byte])(failure: String => FileProcessingError): fs2.Stream[F, Byte] = {
     bytesOrError match {
       case Right(bytes) =>
-        fs2.Stream.chunk(f1(bytes))
+        fs2.Stream.chunk(success(bytes))
       case Left(errorMessage) =>
         Logger[F].error(errorMessage)
-        fs2.Stream.raiseError[F](f2(errorMessage))
+        fs2.Stream.raiseError[F](failure(errorMessage))
     }
   }
 

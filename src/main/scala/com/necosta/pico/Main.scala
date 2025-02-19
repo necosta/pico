@@ -52,7 +52,7 @@ object Main extends IOApp {
         for {
           _        <- logger.info(s"Compressing file ${params.inputFile.getName}")
           start    <- Clock[IO].monotonic
-          (rc, wc) <- fileOps.compress()
+          (rc, wc) <- fileOps.compress(params.chunkSize)
           stop     <- Clock[IO].monotonic
           _        <- logger.info("File successfully compressed")
           _        <- logger.info(s"Took ${(stop - start).toSeconds} seconds")

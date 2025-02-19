@@ -35,4 +35,14 @@ class MainSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
     val res = Main.run(List[String]("decompress", "-f", "samples/sample_1kb.txt.pico"))
     res.asserting(_ shouldBe ExitCode.Success)
   }
+
+  "Main" should "fail with a negative chunk size value" in {
+    val res = Main.run(List[String]("compress", "-f", "samples/sample_1kb.txt", "-c", "-10"))
+    res.asserting(_ shouldBe ExitCode.Error)
+  }
+
+  "Main" should "fail with a chunk size value set against decompress command" in {
+    val res = Main.run(List[String]("decompress", "-f", "samples/sample_1kb.txt.pico", "-c", "10"))
+    res.asserting(_ shouldBe ExitCode.Error)
+  }
 }

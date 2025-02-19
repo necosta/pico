@@ -18,6 +18,15 @@ Lossless data compression library built in Scala that leverages Cats Effect and 
   * **Compress** with `sbt "run compress -f samples/sample_1kb.txt"`
   * **Decompress** with `sbt "run decompress -f samples/sample_1kb.txt.pico"`
 
+### CLI parameters
+
+* **Command:** `compress|decompress`
+  * Selects compress or decompress mode
+* **File:** `-f fileName` or `--file fileName`
+  * Target file to compress or decompress
+* **ChunkSize:** `-c chunkSize` or `--chunkSize chunkSize` 
+  * Only applies to `compress` command mode, source file stream chunk size in kilobytes units
+
 ### Logic
 
 #### Compression
