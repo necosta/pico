@@ -28,8 +28,6 @@ object HuffmanTree extends Tree {
       case _           => trees
     }
 
-  private def countBytes(bytes: List[Byte]): List[Leaf] = bytes match {
-    case Nil    => Nil
-    case c :: _ => Leaf(c, Some(bytes.count(_ == c))) :: countBytes(bytes.filterNot(c == _))
-  }
+  private def countBytes(bytes: List[Byte]): List[Leaf] =
+    bytes.groupBy(identity).map { case (b, occurrences) => Leaf(b, Some(occurrences.length)) }.toList
 }
