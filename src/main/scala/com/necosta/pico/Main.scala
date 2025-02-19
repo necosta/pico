@@ -5,19 +5,27 @@ import cats.syntax.all.*
 import com.necosta.pico.cli.{CLIParameters, Compress, Decompress}
 import com.necosta.pico.file.FileOps
 import io.github.vigoo.clipp.catseffect3.*
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.Logger as Log4catsLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger as Log4catsSlf4jLogger
+import org.slf4j.{Logger, LoggerFactory}
+import ch.qos.logback.classic.{Level, Logger as LogbackLogger}
 
 import java.io.File
 import scala.math.BigDecimal.RoundingMode
 
 object Main extends IOApp {
 
-  private implicit val logger: Logger[IO] = Slf4jLogger.getLogger[IO]
+  private implicit val logger: Log4catsLogger[IO] = Log4catsSlf4jLogger.getLogger[IO]
 
   override def run(args: List[String]): IO[ExitCode] =
     Clipp.parseOrDisplayUsageInfo(args, CLIParameters.paramSpec, ExitCode.Error) { params =>
       for {
+        _ <- IO {
+          val rootLogger = LoggerFactory
+            .getLogger(Logger.ROOT_LOGGER_NAME)
+            .asInstanceOf[LogbackLogger]
+          params.verboseLevel.fold(rootLogger)(lvl => rootLogger.setLevel(lvl))
+        }
         _        <- logger.info("Welcome to Pico - A Scala compression algorithm")
         exitCode <- runInternal(params)
         _        <- logger.debug(s"ExitCode: $exitCode")

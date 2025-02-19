@@ -26,6 +26,8 @@ Lossless data compression library built in Scala that leverages Cats Effect and 
   * Target file to compress or decompress
 * **ChunkSize:** `-c chunkSize` or `--chunkSize chunkSize` 
   * Only applies to `compress` command mode, source file stream chunk size in kilobytes units
+* **Verbosity:** `-d` or `--debug` (for debug mode) and `t` or `--trace` (for trace mode)
+  * Updates root log level for a more verbose logging
 
 ### Logic
 

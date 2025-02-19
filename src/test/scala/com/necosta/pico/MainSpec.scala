@@ -31,6 +31,11 @@ class MainSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
     res.asserting(_ shouldBe ExitCode.Success)
   }
 
+  "Main" should "succeed with valid compress command arguments in debug mode" in {
+    val res = Main.run(List[String]("compress", "-f", "samples/sample_1kb.txt", "--debug"))
+    res.asserting(_ shouldBe ExitCode.Success)
+  }
+
   "Main" should "succeed with valid decompress command arguments" in {
     val res = Main.run(List[String]("decompress", "-f", "samples/sample_1kb.txt.pico"))
     res.asserting(_ shouldBe ExitCode.Success)
