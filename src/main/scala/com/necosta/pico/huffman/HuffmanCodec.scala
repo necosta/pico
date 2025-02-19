@@ -5,8 +5,6 @@ import cats.syntax.all.*
 import com.necosta.pico.huffman.Huffman.*
 import org.typelevel.log4cats.Logger
 
-import scala.annotation.tailrec
-
 sealed trait Codec[F[_]] extends CustomTypes {
 
   def encode(tree: HuffmanTree)(bytes: List[Byte]): F[BitsV]
@@ -38,16 +36,22 @@ class HuffmanCodec[F[_]: { Sync, Logger }] extends Codec[F] {
   }
 
   def decode(tree: HuffmanTree)(bits: List[Boolean]): F[ByteV] = {
-    @tailrec
-    def doDecode(in: List[Boolean], accBytes: ByteV, accBits: List[Boolean], it: Int)(table: SwapTable): (ByteV, Int) =
-      in match {
-        case h :: t =>
-          val (newAccBytes, newAccBits) = table.get(accBits :+ h) match {
-            case Some(b) => (accBytes.combine(List(b).validNec), List.empty)
-            case None    => (accBytes, accBits :+ h)
-          }
-          doDecode(t, newAccBytes, newAccBits, it + 1)(table)
-        case Nil => (accBytes, it)
+    def doDecode(in: Vector[Boolean], accBytes: ByteV, accBits: Vector[Boolean], it: Int)(
+        table: SwapTable
+    ): (ByteV, Int) =
+      in
+        .foldLeft((Vector.empty[Byte].validNec[List[Boolean]], Vector.empty[Boolean], 0)) {
+          case ((accBytesV, accBits, it), h) =>
+            val newAccBits = accBits :+ h
+            table.get(newAccBits.toList) match {
+              case Some(b) =>
+                val updatedBytes = accBytesV.map(_ :+ b)
+                (updatedBytes, Vector.empty, it + 1)
+              case None =>
+                (accBytesV, newAccBits, it + 1)
+            }
+        } match {
+        case (bytesV, _, it) => (bytesV.map(_.toList), it)
       }
 
     for {
@@ -55,7 +59,7 @@ class HuffmanCodec[F[_]: { Sync, Logger }] extends Codec[F] {
       table     = convertTreeToTable(tree, isRoot = true)
       swapTable = table.map { case (k, v) => v -> k }
       _ <- Logger[F].trace("Table: " + swapTable.map { case (k, v) => (k, v.toChar) }.mkString(", "))
-      (byteV, iterations) = doDecode(bits, Nil.validNec, Nil, 0)(swapTable)
+      (byteV, iterations) = doDecode(bits.toVector, Nil.validNec, Vector.empty[Boolean], 0)(swapTable)
       _ <- Logger[F].trace("doDecode iterations: " + iterations)
     } yield byteV
   }
