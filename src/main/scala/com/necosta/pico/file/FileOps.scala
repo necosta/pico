@@ -112,8 +112,7 @@ class FileOps[F[_]: { Async, Logger }](sourceFile: File) extends Ops[F] {
       case Right(bytes) =>
         fs2.Stream.chunk(success(bytes))
       case Left(errorMessage) =>
-        Logger[F].error(errorMessage)
-        fs2.Stream.raiseError[F](failure(errorMessage))
+        fs2.Stream.eval(Logger[F].error(errorMessage)) *> fs2.Stream.raiseError[F](failure(errorMessage))
     }
   }
 

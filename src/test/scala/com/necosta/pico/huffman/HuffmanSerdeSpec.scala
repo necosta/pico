@@ -15,16 +15,16 @@ class HuffmanSerdeSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
     // Ignore weights for serde
     val input    = Fork(Leaf('a', None), Fork(Leaf('c', None), Leaf('b', None)))
     val expected = "FLa,FLc,Lb"
-    HuffmanSerde[IO].serialise(input).asserting(_ shouldBe expected)
-    HuffmanSerde[IO].deserialise(expected).asserting(_ shouldBe input)
+    HuffmanSerde[IO].serialise(input).asserting(_ shouldBe expected) *>
+      HuffmanSerde[IO].deserialise(expected).asserting(_ shouldBe input)
   }
 
   "HuffmanSerde" should "serialise/deserialise simple tree with comma char" in {
     // Ignore weights for serde
     val input    = Fork(Leaf('a', None), Fork(Leaf(',', None), Leaf('b', None)))
     val expected = "FLa,FL,,,Lb"
-    HuffmanSerde[IO].serialise(input).asserting(_ shouldBe expected)
-    HuffmanSerde[IO].deserialise(expected).asserting(_ shouldBe input)
+    HuffmanSerde[IO].serialise(input).asserting(_ shouldBe expected) *>
+      HuffmanSerde[IO].deserialise(expected).asserting(_ shouldBe input)
   }
 
   "HuffmanSerde" should "serialise/deserialise complex tree" in {
@@ -40,7 +40,7 @@ class HuffmanSerdeSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
       )
     )
     val expected = "FFLe,Lf,FFFLa,FLc,Lb,FLz,FLw,Lx,Ld"
-    HuffmanSerde[IO].serialise(input).asserting(_ shouldBe expected)
-    HuffmanSerde[IO].deserialise(expected).asserting(_ shouldBe input)
+    HuffmanSerde[IO].serialise(input).asserting(_ shouldBe expected) *>
+      HuffmanSerde[IO].deserialise(expected).asserting(_ shouldBe input)
   }
 }

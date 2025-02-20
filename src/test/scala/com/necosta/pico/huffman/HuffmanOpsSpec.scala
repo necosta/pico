@@ -8,14 +8,12 @@ class HuffmanOpsSpec extends AnyFlatSpec with Matchers {
     val inputByte = 'a'.toByte
     val input     = inputByte.toInt.toBinaryString.toList.map(_ == '1')
     val res       = HuffmanOps.bitToByte(input)
-    res.map(_._1) shouldBe List(inputByte - 128)
-    res.map(_._2) shouldBe List(1)
+    res shouldBe List((inputByte - 128, 1))
   }
 
   "HuffmanOps" should "map odd number of bits to bytes and set offset" in {
     val input = List[Boolean](true, false, true) // 4 + 0 + 1
     val res   = HuffmanOps.bitToByte(input)
-    res.map(_._1) shouldBe List(5 - 128)
-    res.map(_._2) shouldBe List(5)
+    res shouldBe List((5 - 128, 5))
   }
 }

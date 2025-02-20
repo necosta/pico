@@ -18,16 +18,16 @@ class FileCodecSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
     val expected     = treeExpected ++ dataExpected
     for {
       encoded <- FileCodec[IO].encode(input)
-    } yield encoded match {
-      case Right(v)  => v shouldBe expected
-      case Left(str) => fail(str)
-    }
-    for {
+      _ = encoded match {
+        case Right(v)  => v shouldBe expected
+        case Left(str) => fail(str)
+      }
       decoded <- FileCodec[IO].decode(expected)
-    } yield decoded match {
-      case Right(v)  => v shouldBe input
-      case Left(str) => fail(str)
-    }
+      _ = decoded match {
+        case Right(v)  => v shouldBe input
+        case Left(str) => fail(str)
+      }
+    } yield ()
   }
 
   "FileCodec" should "encode/decode complex tree and data" in {
@@ -42,11 +42,11 @@ class FileCodecSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
       'd'.toByte,
       c,
       l,
-      'b'.toByte,
+      'e'.toByte,
       c,
       f,
       l,
-      'e'.toByte,
+      'b'.toByte,
       c,
       f,
       l,
@@ -56,19 +56,19 @@ class FileCodecSpec extends AsyncFlatSpec with Matchers with AsyncIOSpec {
       'c'.toByte,
       TreeSeparator.toByte
     )
-    val dataExpected = List[Byte](-76, -75, 0)
+    val dataExpected = List[Byte](-86, -70, 0)
     val expected     = treeExpected ++ dataExpected
     for {
       encoded <- FileCodec[IO].encode(input)
-    } yield encoded match {
-      case Right(v)  => v shouldBe expected
-      case Left(str) => fail(str)
-    }
-    for {
+      _ = encoded match {
+        case Right(v)  => v shouldBe expected
+        case Left(str) => fail(str)
+      }
       decoded <- FileCodec[IO].decode(expected)
-    } yield decoded match {
-      case Right(v)  => v shouldBe input
-      case Left(str) => fail(str)
-    }
+      _ = decoded match {
+        case Right(v)  => v shouldBe input
+        case Left(str) => fail(str)
+      }
+    } yield ()
   }
 }

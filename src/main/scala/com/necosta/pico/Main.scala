@@ -8,7 +8,7 @@ import io.github.vigoo.clipp.catseffect3.*
 import org.typelevel.log4cats.Logger as Log4catsLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger as Log4catsSlf4jLogger
 import org.slf4j.{Logger, LoggerFactory}
-import ch.qos.logback.classic.{Level, Logger as LogbackLogger}
+import ch.qos.logback.classic.Logger as LogbackLogger
 
 import java.io.File
 import scala.math.BigDecimal.RoundingMode
