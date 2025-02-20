@@ -1,0 +1,30 @@
+name: Default Scala CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '23'
+          cache: 'sbt'
+
+      - name: Setup SBT
+        uses: sbt/setup-sbt@v1
+
+      - name: Run SBT tests
+        run: sbt test
